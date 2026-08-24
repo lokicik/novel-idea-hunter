@@ -44,7 +44,12 @@
         "relationship": "adjacent-product",
         "difference": "Monitors live traffic quality downstream; does not pin an eval subset keyed to provider build identifiers"
       }
-    ]
+    ],
+    "recheck": {
+      "queries": ["eval rerun on provider version change tool", "model version pinned regression testing service"],
+      "outcome": "upheld",
+      "note": "Second pass with reframed queries found CI-triggered eval runners but nothing keyed to provider build identifiers"
+    }
   },
   "kill_tests": [
     {"criterion": "incumbent-weekend-build", "result": "pass", "note": "Requires maintained per-provider version fingerprinting, an ongoing data chore incumbents have declined"},

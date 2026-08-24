@@ -120,6 +120,16 @@
             }
           },
           "description": "Required non-empty unless verdict is no-close-prior-art-found (which requires scope_searched to cover at least 4 query families) or unverified."
+        },
+        "recheck": {
+          "type": "object",
+          "required": ["queries", "outcome"],
+          "properties": {
+            "queries": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "outcome": { "type": "string", "enum": ["upheld", "overturned"] },
+            "note": { "type": "string" }
+          },
+          "description": "Second narrow prior-art pass aimed only at the differentiation claim, run in a fresh context before promotion. Survivors require outcome 'upheld' (lint-enforced); 'overturned' sends the candidate back to prosecution with the new evidence."
         }
       }
     },

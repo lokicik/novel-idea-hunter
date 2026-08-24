@@ -10,6 +10,28 @@ unless a written note justifies the override (lint enforces both).
 Apply the criteria most likely to kill first — the point is to spend search
 budget destroying candidates cheaply, not to complete a checklist.
 
+## Goal profiles
+
+Match the criteria to what the brief says winning means. Grading a
+stewardship play with revenue criteria produces evasive `unclear` results
+that hide real risks — the wrong questions get soft answers while the right
+questions never get asked.
+
+**Commercial profile** (default): the candidate is a business. Core set:
+`incumbent-weekend-build`, `buyer-has-budget`, `pain-frequency`,
+`reachable-distribution`, `workaround-is-good-enough`, plus any others that
+bite.
+
+**Stewardship profile** (use when the brief accepts open-source, standards,
+or positional outcomes): replace `buyer-has-budget` and `unit-economics-smell`
+with `adoption-gatekeeper` and `sustainability-path`. Everything else still
+applies — a stewardship play with no reachable distribution or a live legal
+landmine is just as dead as a business with those problems.
+
+State in each candidate's `kill_tests` notes which profile was applied, so
+the audit trail shows the substitution was deliberate rather than criteria
+being quietly skipped.
+
 ## The criteria
 
 **`incumbent-weekend-build`** — Could an incumbent with existing distribution
@@ -61,6 +83,24 @@ and high-touch onboarding all fail quietly here. A rough sketch suffices;
 professional advice, or absorb liability the actor currently carries? Name
 the constraint and the compliance cost, or pass explicitly by showing it
 stays outside the regulated boundary.
+
+**`adoption-gatekeeper`** *(stewardship profile)* — Who must accept, merge,
+link, or defer to this artifact for it to matter, and what is their concrete
+incentive to do so? A conformance suite nobody tests against and a registry
+nobody cites are shelfware. Pass requires naming the gatekeepers (specific
+maintainers, working groups, vendors) and the reason each one engages —
+"developers will love it" is the null answer and fails. Also name the
+capture risk: what happens when a standards body or platform vendor decides
+to occupy the position themselves?
+
+**`sustainability-path`** *(stewardship profile)* — Who does the work in
+year two? Stewardship is a maintenance treadmill (the graveyards are full of
+ISO standards with 43-commit reference repos). Pass requires a named path:
+sponsorship structure, badge/certification revenue, institutional home, or a
+scoped design that genuinely needs near-zero maintenance — with the note
+saying which. "I will keep it updated" from a solo steward is `unclear` at
+best, and the falsification plan should test the funding assumption, not
+just initial adoption.
 
 ## Attack integrity
 

@@ -65,6 +65,32 @@ class TestLintValidCandidate(unittest.TestCase):
         errors, _ = lint_candidate.lint_candidate(cand)
         self.assertTrue(has_error(errors, "un-overridden kill result"))
 
+    def test_survivor_requires_recheck(self):
+        cand = copy.deepcopy(self.cand)
+        del cand["novelty"]["recheck"]
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "without novelty.recheck"))
+
+    def test_overturned_recheck_blocks_survivor(self):
+        cand = copy.deepcopy(self.cand)
+        cand["novelty"]["recheck"]["outcome"] = "overturned"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "overturned re-check"))
+
+    def test_recheck_optional_below_survivor(self):
+        cand = copy.deepcopy(self.cand)
+        cand["status"] = "prosecuted"
+        cand["kill_tests"] = []
+        del cand["novelty"]["recheck"]
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertEqual(errors, [])
+
+    def test_recheck_bad_outcome_rejected(self):
+        cand = copy.deepcopy(self.cand)
+        cand["novelty"]["recheck"]["outcome"] = "confirmed-unique"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "recheck.outcome"))
+
 
 class TestLintSlopCandidate(unittest.TestCase):
     def setUp(self):
@@ -237,9 +263,20 @@ class TestSchemasAndCLI(unittest.TestCase):
                          lint_candidate.MECHANISM_CLASSES)
         self.assertEqual(set(props["novelty"]["properties"]["verdict"]["enum"]),
                          lint_candidate.NOVELTY_VERDICTS)
+        self.assertEqual(set(props["novelty"]["properties"]["recheck"]["properties"]["outcome"]["enum"]),
+                         lint_candidate.RECHECK_OUTCOMES)
         self.assertEqual(set(props["edge"]["properties"]["status"]["enum"]),
                          lint_candidate.EDGE_STATUSES)
         self.assertEqual(set(props["status"]["enum"]), lint_candidate.STATUSES)
+
+    def test_observation_loading_recurses_subdirs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lens_dir = Path(tmp) / "workarounds"
+            lens_dir.mkdir()
+            (lens_dir / "OBS-workarounds-01.json").write_text(json.dumps({"id": "OBS-workarounds-01"}))
+            (Path(tmp) / "OBS-capability-shifts-01.json").write_text(json.dumps({"id": "OBS-capability-shifts-01"}))
+            ids = lint_candidate.load_observation_ids(tmp)
+        self.assertEqual(ids, {"OBS-workarounds-01", "OBS-capability-shifts-01"})
 
     def test_lint_cli_exit_codes(self):
         self.assertEqual(lint_candidate.main([str(FIXTURES / "valid_candidate.json")]), 0)

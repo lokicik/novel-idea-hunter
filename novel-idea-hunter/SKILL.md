@@ -138,8 +138,11 @@ to `prosecuted`, re-run lint (it enforces verdict consistency).
 
 ## Phase 7 — Attack
 
-Read `references/kill-criteria.md`. Apply ≥5 criteria per candidate,
-hardest-to-survive first; record every test in `kill_tests`. Kills go to the
+Read `references/kill-criteria.md`. Pick the goal profile the brief implies
+(commercial vs stewardship — grading an open-standard play on revenue
+criteria yields evasive `unclear`s instead of real answers). Apply ≥5
+criteria per candidate, hardest-to-survive first; record every test in
+`kill_tests` and note which profile was used. Kills go to the
 graveyard with reasons; justified overrides get written notes that a skeptic
 could audit. Survivors get status `attacked`.
 
@@ -154,10 +157,17 @@ two statuses, assign the lower.
 
 ## Phase 9 — Portfolio
 
-Promote at most 3 candidates to status `survivor` (re-run lint — survivor
-status tightens requirements: ≥5 kill tests, verdict consistency, crowded
-needs credible edge). Write `<run>/portfolio/portfolio.json` per
-`scripts/schemas/portfolio.schema.json`, then audit:
+Before promoting any candidate, run the **survivor re-check** from
+novelty-rubric.md: a second, narrow prior-art pass (fresh subagent where
+available, 2-4 queries) aimed only at the differentiation claim, recorded in
+`novelty.recheck`. An overturned re-check sends the candidate back to
+prosecution with the new evidence.
+
+Then promote at most 3 candidates to status `survivor` (re-run lint —
+survivor status tightens requirements: ≥5 kill tests, verdict consistency,
+crowded needs credible edge, upheld re-check). Write
+`<run>/portfolio/portfolio.json` per `scripts/schemas/portfolio.schema.json`,
+then audit:
 
 ```bash
 python3 "$SKILL/scripts/check_portfolio.py" <run>

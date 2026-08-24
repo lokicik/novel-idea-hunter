@@ -42,6 +42,7 @@ MECHANISM_CLASSES = {
     "embedded-workflow-tool",
 }
 NOVELTY_VERDICTS = {"duplicated", "crowded", "differentiated", "no-close-prior-art-found", "unverified"}
+RECHECK_OUTCOMES = {"upheld", "overturned"}
 PRIOR_ART_RELATIONSHIPS = {
     "direct-competitor", "adjacent-product", "incumbent-feature", "open-source",
     "failed-attempt", "academic", "patent",
@@ -221,6 +222,20 @@ def lint_candidate(cand, observation_ids_on_disk=None):
         if rel and rel not in PRIOR_ART_RELATIONSHIPS:
             errors.append(f"novelty.closest_prior_art[{i}].relationship '{rel}' not in controlled vocabulary")
 
+    # --- survivor re-check (second narrow prior-art pass) ---
+    recheck = nov.get("recheck")
+    if recheck is not None:
+        outcome = (recheck or {}).get("outcome", "")
+        need(outcome in RECHECK_OUTCOMES, f"novelty.recheck.outcome '{outcome}' not in {sorted(RECHECK_OUTCOMES)}")
+        need(len((recheck or {}).get("queries") or []) >= 1, "novelty.recheck.queries empty — record what was actually searched")
+    if status == "survivor":
+        if recheck is None:
+            errors.append("survivor without novelty.recheck — one prosecution pass is one sample; "
+                          "run the narrow re-check from novelty-rubric.md before promotion")
+        elif (recheck or {}).get("outcome") == "overturned":
+            errors.append("survivor with an overturned re-check — the differentiation claim broke; "
+                          "send the candidate back to prosecution with the new evidence")
+
     # --- kill tests ---
     kill_tests = cand.get("kill_tests") or []
     kills = [t for t in kill_tests if (t or {}).get("result") == "kill"]
@@ -277,8 +292,10 @@ def lint_candidate(cand, observation_ids_on_disk=None):
 
 
 def load_observation_ids(obs_dir):
+    """Collect observation ids from obs_dir, including per-lens subdirectories
+    (scout branches write into subfolders before the Normalize merge)."""
     ids = set()
-    for p in Path(obs_dir).glob("*.json"):
+    for p in Path(obs_dir).rglob("*.json"):
         try:
             data = json.loads(p.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

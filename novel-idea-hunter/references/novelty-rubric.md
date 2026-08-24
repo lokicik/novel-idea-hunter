@@ -71,6 +71,35 @@ more integrated / smarter").
 - Numeric novelty scores ("novelty: 9.3/10") are banned. A score without
   retrieval behind it is an opinion wearing a costume.
 
+## Survivor re-check
+
+A verdict from one prosecution pass is one sample. Before any candidate is
+promoted to `survivor`, run a re-check: a second, narrow search pass — fresh
+context (a new subagent where available), 2-4 queries, minutes not hours —
+aimed **only at the differentiation claim**, not the whole idea. If the
+verdict says "differentiated because nothing ships conformance vectors,"
+the re-check searches specifically for shipped conformance vectors, phrased
+differently than the prosecutor phrased it.
+
+Record the result in the candidate's `novelty.recheck`:
+
+```json
+"recheck": {
+  "queries": ["the actual queries run"],
+  "outcome": "upheld",
+  "note": "what was or was not found, one or two sentences"
+}
+```
+
+`outcome` is `upheld` or `overturned`. Overturned means the re-check found
+prior art that breaks the differentiation claim: the candidate goes back to
+prosecution with the new evidence (usually to die there). Lint refuses
+survivor status without an upheld re-check — one search pass is not enough
+foundation to put a month of the user's life on.
+
+The re-check exists because the prosecutor, like everyone, phrases queries
+inside one frame. The cheapest defense against a frame is a second frame.
+
 ## Honesty floor
 
 If time or access constraints prevented a real search of 4+ families, the
