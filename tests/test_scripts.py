@@ -91,6 +91,18 @@ class TestLintValidCandidate(unittest.TestCase):
         errors, _ = lint_candidate.lint_candidate(cand)
         self.assertTrue(has_error(errors, "recheck.outcome"))
 
+    def test_harness_as_noun_not_flagged(self):
+        cand = copy.deepcopy(self.cand)
+        cand["mechanism"]["steps"][0] = "Parse the team's eval harness configuration and record baseline scores per task"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertEqual(errors, [])
+
+    def test_harness_as_filler_verb_still_flagged(self):
+        cand = copy.deepcopy(self.cand)
+        cand["mechanism"]["steps"][0] = "Harness the power of AI to improve results across the entire workflow"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "vague"))
+
 
 class TestLintSlopCandidate(unittest.TestCase):
     def setUp(self):

@@ -71,7 +71,9 @@ SLOP_SHAPES = [
 # Words that appear in steps when the author does not actually know how the
 # product works. A mechanism step containing one of these is an error.
 VAGUE_STEP_PATTERNS = [
-    (re.compile(r"\b(leverage|harness|utilize)s?\b", re.I), "filler verb (leverage/harness/utilize)"),
+    (re.compile(r"\b(leverage|utilize)(s|d|ing)?\b", re.I), "filler verb (leverage/utilize)"),
+    (re.compile(r"\bharness(es|ed|ing)?\s+(the|ai|ml|llms?|machine learning|power)\b", re.I),
+     "filler verb (harnessing AI/the power of...)"),
     (re.compile(r"\buses? (ai|ml|machine learning|artificial intelligence|llms?) to\b", re.I), "'uses AI to' without a concrete operation"),
     (re.compile(r"\bai[- ]powered\b", re.I), "'AI-powered' inside a mechanism step"),
     (re.compile(r"\bseamless(ly)?\b", re.I), "'seamless' is a hope, not a step"),
