@@ -1,0 +1,44 @@
+{
+  "id": "CAND-03",
+  "name": "Procurement Clause Differ",
+  "one_liner": "Diffs enterprise procurement questionnaires against a vendor's previous answers and flags newly added clauses for review.",
+  "status": "prosecuted",
+  "observation_ids": ["OBS-pricing-incentives-01", "OBS-pricing-incentives-02"],
+  "mechanism": {
+    "actor": "founders of small B2B vendors answering enterprise security questionnaires",
+    "trigger": "a prospect sends a new procurement questionnaire during a sales cycle",
+    "steps": [
+      "Parse the incoming questionnaire into clause-level records keyed by topic and obligation",
+      "Match each clause against the vendor's answer library from previous questionnaires",
+      "Flag unmatched or changed clauses with the closest previous answer for human review"
+    ],
+    "replaces_workaround": "Founders keep a spreadsheet of past answers and search it by hand for each new questionnaire",
+    "why_now": {
+      "change": "Clause-level document parsing became reliable enough to key obligations without manual templating",
+      "evidence_observation_ids": ["OBS-pricing-incentives-01"]
+    }
+  },
+  "descriptor": {
+    "opportunity_pattern": "workaround-productization",
+    "mechanism_class": "translation-bridge",
+    "target_actor": "small B2B vendor founders",
+    "workflow": "answering enterprise procurement questionnaires",
+    "bottleneck": "clause matching against prior answers is manual"
+  },
+  "novelty": {
+    "verdict": "no-close-prior-art-found",
+    "scope_searched": ["exact-product-shape", "open-source"],
+    "closest_prior_art": []
+  },
+  "kill_tests": [],
+  "edge": {
+    "status": "potential",
+    "asset": ""
+  },
+  "falsification": {
+    "test": "Offer a manual clause-diff service to ten vendors currently in procurement cycles",
+    "cost": "one week of manual effort",
+    "timebox": "3 weeks",
+    "kill_condition": "Fewer than three vendors accept the free manual service"
+  }
+}

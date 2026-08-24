@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "novel-idea-hunter/candidate.schema.json",
+  "title": "Candidate opportunity",
+  "description": "A candidate opportunity generated in the Diverge phase. Every field exists to make a specific failure mode impossible: untraceable ideas, vague mechanisms, self-graded novelty, and edge claims without assets. lint_candidate.py enforces this schema plus the deterministic slop gate.",
+  "type": "object",
+  "required": ["id", "name", "one_liner", "status", "observation_ids", "mechanism", "descriptor", "novelty", "edge", "falsification"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^CAND-[0-9]{2,}$" },
+    "name": { "type": "string", "minLength": 3, "maxLength": 80 },
+    "one_liner": { "type": "string", "minLength": 20, "description": "One sentence: actor + moment + mechanism + replaced workaround. Not a slogan." },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "gated", "prosecuted", "attacked", "survivor", "killed"],
+      "description": "Pipeline position. Lint requirements tighten as status advances; 'survivor' must pass everything."
+    },
+    "observation_ids": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "type": "string", "pattern": "^OBS-[a-z0-9-]+-[0-9]{2,}$" },
+      "description": "At least 3 observations spanning at least 2 different lenses. An idea that cannot cite its observations does not exist."
+    },
+    "mechanism": {
+      "type": "object",
+      "required": ["actor", "trigger", "steps", "replaces_workaround", "why_now"],
+      "properties": {
+        "actor": { "type": "string", "minLength": 8, "description": "Narrow actor. 'Accountants' fails review; 'solo tax accountants filing Turkish e-invoices' passes." },
+        "trigger": { "type": "string", "minLength": 8, "description": "The specific workflow moment where the product enters." },
+        "steps": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": { "type": "string", "minLength": 20 },
+          "description": "2-4 concrete steps describing HOW it works. Each step names an input, an operation, and an output. 'Use AI to analyze' is not a step."
+        },
+        "replaces_workaround": { "type": "string", "minLength": 10, "description": "What the actor does today instead. If nothing, the pain probably is not real." },
+        "why_now": {
+          "type": "object",
+          "required": ["change", "evidence_observation_ids"],
+          "properties": {
+            "change": { "type": "string", "minLength": 15, "description": "What became possible, cheap, legal, or urgent recently." },
+            "evidence_observation_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "pattern": "^OBS-[a-z0-9-]+-[0-9]{2,}$" }
+            }
+          }
+        }
+      }
+    },
+    "descriptor": {
+      "type": "object",
+      "description": "Structural coordinates used by the quality-diversity archive and the portfolio redundancy audit. Two candidates sharing all of pattern+class+actor are the same idea wearing different words.",
+      "required": ["opportunity_pattern", "mechanism_class", "target_actor", "workflow", "bottleneck"],
+      "properties": {
+        "opportunity_pattern": {
+          "type": "string",
+          "enum": [
+            "capability-threshold-crossing",
+            "workaround-productization",
+            "workflow-collapse",
+            "trust-gap",
+            "unbundling",
+            "rebundling",
+            "cross-domain-transfer",
+            "data-exhaust-capture",
+            "regulatory-wedge",
+            "incumbent-incentive-gap",
+            "failed-idea-revival",
+            "expert-labor-compression"
+          ]
+        },
+        "mechanism_class": {
+          "type": "string",
+          "enum": [
+            "pipeline-automation",
+            "verification-layer",
+            "monitoring-alerting",
+            "translation-bridge",
+            "coordination-marketplace",
+            "generation-tooling",
+            "decision-support",
+            "compliance-automation",
+            "infrastructure-primitive",
+            "embedded-workflow-tool"
+          ]
+        },
+        "target_actor": { "type": "string" },
+        "workflow": { "type": "string" },
+        "bottleneck": { "type": "string" },
+        "trust_requirement": { "type": "string" },
+        "edge_source": { "type": "string" }
+      }
+    },
+    "novelty": {
+      "type": "object",
+      "required": ["verdict", "scope_searched", "closest_prior_art"],
+      "description": "Filled by the novelty prosecutor, never by the generator. See references/novelty-rubric.md.",
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["duplicated", "crowded", "differentiated", "no-close-prior-art-found", "unverified"],
+          "description": "Controlled vocabulary. There is deliberately no 'unique' or 'novel' value: absence of found prior art is the strongest claim this system permits."
+        },
+        "scope_searched": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Which query families from novelty-rubric.md were actually searched (e.g. 'exact-product-shape', 'same-actor-same-workflow', 'open-source', 'failed-products')."
+        },
+        "closest_prior_art": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "url", "relationship", "difference"],
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string" },
+              "relationship": { "type": "string", "enum": ["direct-competitor", "adjacent-product", "incumbent-feature", "open-source", "failed-attempt", "academic", "patent"] },
+              "difference": { "type": "string", "description": "The specific, checkable difference — not 'ours is better'." }
+            }
+          },
+          "description": "Required non-empty unless verdict is no-close-prior-art-found (which requires scope_searched to cover at least 4 query families) or unverified."
+        }
+      }
+    },
+    "kill_tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion", "result"],
+        "properties": {
+          "criterion": { "type": "string", "description": "One of the criteria in references/kill-criteria.md." },
+          "result": { "type": "string", "enum": ["pass", "kill", "unclear"] },
+          "note": { "type": "string" }
+        }
+      },
+      "description": "Filled in the Attack phase. A 'kill' result moves the candidate to the graveyard unless explicitly overridden with a written justification in note."
+    },
+    "edge": {
+      "type": "object",
+      "required": ["status"],
+      "description": "Proprietary-edge verification. See references/edge-verification.md. Public-web-only findings can never exceed 'none'.",
+      "properties": {
+        "status": { "type": "string", "enum": ["none", "potential", "credible", "compounding"] },
+        "asset": { "type": "string", "description": "The concrete asset or access path. Required for potential and above." },
+        "control": { "type": "string", "description": "Why the user controls it and may legally use it. Required for credible and above." },
+        "evidence_observation_ids": { "type": "array", "items": { "type": "string" }, "description": "Required for credible and above." },
+        "copy_difficulty": { "type": "string", "description": "Why a competent competitor cannot replicate it in a quarter. Required for credible and above." },
+        "proof_metric": { "type": "string", "description": "A measurable check that the edge is real. Required for credible and above." },
+        "accumulation_loop": { "type": "string", "description": "usage -> unique data/learning -> better result -> retention/distribution -> more usage. Required for compounding." }
+      }
+    },
+    "falsification": {
+      "type": "object",
+      "required": ["test", "kill_condition"],
+      "properties": {
+        "test": { "type": "string", "minLength": 20, "description": "The cheapest real-world experiment that could prove the thesis wrong." },
+        "cost": { "type": "string", "description": "Rough cost in time or money." },
+        "timebox": { "type": "string" },
+        "kill_condition": { "type": "string", "minLength": 10, "description": "The concrete result that would invalidate the idea. Written before running the test." }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "properties": {
+        "parent_ids": { "type": "array", "items": { "type": "string" } },
+        "operation": { "type": "string", "enum": ["fresh", "mutation", "crossover", "repair"] }
+      },
+      "description": "How this candidate was derived, for the quality-diversity archive."
+    },
+    "graveyard_reason": { "type": "string", "description": "Required when status is 'killed'. Kept so later runs do not resurrect the same corpse without new evidence." }
+  }
+}

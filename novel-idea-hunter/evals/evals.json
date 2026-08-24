@@ -1,0 +1,52 @@
+{
+  "skill_name": "novel-idea-hunter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm a solo developer interested in the LLM evaluation tooling space. Find me non-obvious product opportunities I could realistically build alone. Use quick mode.",
+      "expected_output": "A run directory with sourced observation records, candidate JSON files that pass the lint, and a report.md containing at most 3 survivor dossiers (or an honest zero-survivor report), each with mechanism steps, closest prior art, edge status, and a falsification experiment.",
+      "files": [],
+      "expectations": [
+        "A run directory was created containing observations/, candidates/, portfolio/ subdirectories and a report.md",
+        "At least 6 observation records exist, each with at least one source URL",
+        "Cited observations span at least 2 different lenses (visible in OBS- id prefixes)",
+        "Every non-graveyard candidate JSON passes scripts/lint_candidate.py with 0 errors",
+        "The report contains at most 3 survivor dossiers",
+        "Every survivor dossier cites observation ids inline",
+        "Each survivor lists closest prior art with a specific difference per item, or declares no-close-prior-art-found with at least 4 searched query families listed",
+        "The report contains none of: 'no competitors', 'first-ever', 'globally unique', 'unprecedented', 'first-of-its-kind'",
+        "Each survivor has a falsification experiment with a pre-committed kill condition"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "are there any untapped niches around home energy monitoring? i can build hardware-adjacent software but nothing capital heavy. quick mode please",
+      "expected_output": "Same structural output as eval 1 in an unfamiliar consumer-adjacent domain: evidence-first run, linted candidates, honest portfolio of at most 3 with the capital constraint respected.",
+      "files": [],
+      "expectations": [
+        "A run directory was created containing observations/, candidates/, portfolio/ subdirectories and a report.md",
+        "Observation records cite primary sources (forums, changelogs, pricing pages, repos) rather than only news articles",
+        "Every non-graveyard candidate JSON passes scripts/lint_candidate.py with 0 errors",
+        "No survivor requires capital-heavy hardware manufacturing (the user's stated constraint)",
+        "The report contains at most 3 survivor dossiers",
+        "Each survivor names the current workaround it replaces",
+        "Each survivor has an evidenced why-now with observation citations",
+        "Novelty verdicts come only from the controlled vocabulary: duplicated, crowded, differentiated, no-close-prior-art-found, unverified"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Give me 10 AI SaaS startup ideas I can launch fast.",
+      "expected_output": "The skill must not return 10 generic ideas. It either clarifies the brief and runs the evidence-first pipeline (quick mode), or explains the pipeline and asks for a domain constraint. Any ideas ultimately presented number at most 3 and carry evidence, mechanisms, and prior-art verdicts.",
+      "files": [],
+      "expectations": [
+        "The response does not contain a list of 10 ideas",
+        "No idea is presented without cited observations behind it",
+        "No presented idea matches a generic shape (AI-powered X, copilot for X, all-in-one platform, marketplace for X) without a concrete 2-4 step mechanism",
+        "At most 3 ideas are presented in the final output",
+        "The response either asks the user to narrow a domain or picks a domain explicitly and states the choice",
+        "If the pipeline ran, every presented idea's candidate JSON passes scripts/lint_candidate.py with 0 errors"
+      ]
+    }
+  ]
+}

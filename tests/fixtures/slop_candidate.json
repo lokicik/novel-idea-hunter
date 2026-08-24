@@ -1,0 +1,42 @@
+{
+  "id": "CAND-02",
+  "name": "AI Copilot for Accountants",
+  "one_liner": "An AI-powered assistant that helps accountants automate their workflows seamlessly.",
+  "status": "survivor",
+  "observation_ids": ["OBS-manual-workflows-01"],
+  "mechanism": {
+    "actor": "accountants",
+    "trigger": "daily work",
+    "steps": [
+      "Leverage AI to analyze documents",
+      "Seamlessly integrate with existing tools"
+    ],
+    "replaces_workaround": "",
+    "why_now": {
+      "change": "AI is booming",
+      "evidence_observation_ids": []
+    }
+  },
+  "descriptor": {
+    "opportunity_pattern": "expert-labor-compression",
+    "mechanism_class": "pipeline-automation",
+    "target_actor": "accountants",
+    "workflow": "accounting",
+    "bottleneck": "manual work"
+  },
+  "novelty": {
+    "verdict": "unverified",
+    "scope_searched": [],
+    "closest_prior_art": []
+  },
+  "kill_tests": [],
+  "edge": {
+    "status": "compounding",
+    "asset": "First-mover advantage in the accounting AI space"
+  },
+  "falsification": {
+    "test": "",
+    "kill_condition": ""
+  },
+  "graveyard_reason": ""
+}

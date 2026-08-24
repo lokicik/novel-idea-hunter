@@ -1,0 +1,11 @@
+# Personal discovery runs — research output, not part of the skill
+idea-runs/
+
+# Eval workspace — run artifacts, transcripts, viewer state
+novel-idea-hunter-workspace/
+
+# OS / tooling noise
+.DS_Store
+__pycache__/
+*.pyc
+*.log

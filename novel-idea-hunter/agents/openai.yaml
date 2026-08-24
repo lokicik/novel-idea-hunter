@@ -1,0 +1,10 @@
+# Codex-specific metadata for the novel-idea-hunter skill.
+# Claude Code ignores this file; Codex reads it alongside SKILL.md.
+interface:
+  display_name: Novel Idea Hunter
+  short_description: Evidence-first, anti-slop opportunity discovery pipeline.
+policy:
+  # This is an expensive multi-phase research workflow (many web searches,
+  # subagents, validator scripts). Require explicit invocation:
+  #   $novel-idea-hunter <brief>
+  allow_implicit_invocation: false

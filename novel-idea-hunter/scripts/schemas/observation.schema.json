@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "novel-idea-hunter/observation.schema.json",
+  "title": "Observation record",
+  "description": "A single sourced observation collected during the Observe phase. Observations are the only permitted raw material for candidate ideas.",
+  "type": "object",
+  "required": ["id", "lens", "claim", "sources", "confidence"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^OBS-[a-z0-9-]+-[0-9]{2,}$",
+      "description": "Format: OBS-<lens-slug>-<nn>, e.g. OBS-capability-03"
+    },
+    "lens": {
+      "type": "string",
+      "enum": [
+        "capability-shifts",
+        "manual-workflows",
+        "workarounds",
+        "trust-bottlenecks",
+        "ecosystem-breakage",
+        "pricing-incentives",
+        "failed-products",
+        "cross-domain",
+        "private-edge"
+      ],
+      "description": "The isolated research lens that produced this observation. See references/search-lenses.md."
+    },
+    "claim": {
+      "type": "string",
+      "minLength": 20,
+      "description": "One factual sentence stating what was observed. No product ideas, no solutions."
+    },
+    "detail": {
+      "type": "string",
+      "description": "Longer context: who, what, when, how often, at what cost."
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["url", "type"],
+        "properties": {
+          "url": { "type": "string" },
+          "quote": { "type": "string", "description": "Short verbatim excerpt (under 15 words) or paraphrase supporting the claim." },
+          "date_accessed": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+          "type": {
+            "type": "string",
+            "enum": ["forum", "issue-tracker", "changelog", "paper", "pricing-page", "job-listing", "docs", "news", "repo", "review", "regulation", "private", "other"]
+          }
+        }
+      },
+      "description": "For lens=private-edge, use type=private and put an opaque label in url (e.g. private://notes/2025-q3), never the private content itself."
+    },
+    "observed_actor": { "type": "string", "description": "Who exhibits the behavior (narrow: 'freelance tax accountants in DE', not 'businesses')." },
+    "observed_behavior": { "type": "string", "description": "What they concretely do today." },
+    "facets": {
+      "type": "object",
+      "description": "Facet decomposition used by the Diverge phase. Fill what the evidence supports; omit what it does not. See references/facets.md.",
+      "properties": {
+        "actor": { "type": "string" },
+        "job_to_be_done": { "type": "string" },
+        "trigger": { "type": "string" },
+        "workflow": { "type": "string" },
+        "friction": { "type": "string" },
+        "frequency": { "type": "string" },
+        "current_workaround": { "type": "string" },
+        "cost_of_failure": { "type": "string" },
+        "capability_change": { "type": "string" },
+        "data_exhaust": { "type": "string" },
+        "trust_requirement": { "type": "string" },
+        "distribution": { "type": "string" },
+        "buyer": { "type": "string" },
+        "constraint": { "type": "string" },
+        "transferable_mechanism": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["reported", "corroborated", "verified"],
+      "description": "reported = one source says so; corroborated = 2+ independent sources; verified = directly checked (ran the code, read the regulation, saw the pricing page)."
+    }
+  }
+}

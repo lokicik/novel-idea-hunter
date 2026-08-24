@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "novel-idea-hunter/portfolio.schema.json",
+  "title": "Run portfolio",
+  "description": "The final output manifest of a run: at most 3 structurally non-redundant survivors. check_portfolio.py audits this file together with the survivor candidate files.",
+  "type": "object",
+  "required": ["run_id", "domain", "mode", "survivors", "candidates_considered", "graveyard_count"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "domain": { "type": "string", "description": "The search brief's domain or problem area." },
+    "mode": { "type": "string", "enum": ["quick", "deep"] },
+    "created": { "type": "string", "description": "ISO timestamp." },
+    "survivors": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 3,
+      "items": { "type": "string", "pattern": "^CAND-[0-9]{2,}$" },
+      "description": "Zero survivors is an acceptable, honest outcome. Three near-clones is not."
+    },
+    "candidates_considered": { "type": "integer", "minimum": 0 },
+    "graveyard_count": { "type": "integer", "minimum": 0 },
+    "lenses_run": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

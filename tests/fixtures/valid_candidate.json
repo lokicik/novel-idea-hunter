@@ -1,0 +1,71 @@
+{
+  "id": "CAND-01",
+  "name": "Eval Drift Sentry",
+  "one_liner": "Reruns a pinned eval subset whenever an upstream model version silently changes, alerting ML platform teams before drift reaches production.",
+  "status": "survivor",
+  "observation_ids": ["OBS-capability-shifts-01", "OBS-manual-workflows-01", "OBS-workarounds-02"],
+  "mechanism": {
+    "actor": "ML platform teams maintaining internal eval suites against hosted LLM APIs",
+    "trigger": "an upstream provider ships a new model build under the same API alias",
+    "steps": [
+      "Pin a versioned subset of the team's eval suite and record baseline scores for the current model build",
+      "Poll provider changelogs and response version headers nightly, diffing against the recorded baseline configuration",
+      "Rerun the pinned subset when a version change lands and compute per-task score deltas",
+      "Open a tracker issue with the failing task diffs when any delta exceeds the team's threshold"
+    ],
+    "replaces_workaround": "Teams keep ad-hoc prompt spreadsheets and rerun them by hand after users report degraded outputs in production",
+    "why_now": {
+      "change": "Provider changelogs and model version response headers became machine-readable during 2025, making silent model swaps detectable without scraping",
+      "evidence_observation_ids": ["OBS-capability-shifts-01"]
+    }
+  },
+  "descriptor": {
+    "opportunity_pattern": "capability-threshold-crossing",
+    "mechanism_class": "monitoring-alerting",
+    "target_actor": "ML platform teams at LLM-consuming companies",
+    "workflow": "regression-testing hosted model behavior after upstream changes",
+    "bottleneck": "silent upstream model swaps invalidate cached eval results",
+    "trust_requirement": "read access to eval suite and CI, no production data needed",
+    "edge_source": "public regression tracker corpus"
+  },
+  "novelty": {
+    "verdict": "differentiated",
+    "scope_searched": ["exact-product-shape", "same-actor-same-workflow", "open-source", "incumbent-roadmap", "failed-products"],
+    "closest_prior_art": [
+      {
+        "name": "promptfoo",
+        "url": "https://github.com/promptfoo/promptfoo",
+        "relationship": "open-source",
+        "difference": "Runs evals on demand in CI; does not watch provider version metadata or trigger reruns on upstream swaps"
+      },
+      {
+        "name": "LangSmith monitoring",
+        "url": "https://smith.langchain.com",
+        "relationship": "adjacent-product",
+        "difference": "Monitors live traffic quality downstream; does not pin an eval subset keyed to provider build identifiers"
+      }
+    ]
+  },
+  "kill_tests": [
+    {"criterion": "incumbent-weekend-build", "result": "pass", "note": "Requires maintained per-provider version fingerprinting, an ongoing data chore incumbents have declined"},
+    {"criterion": "buyer-has-budget", "result": "pass", "note": "Platform teams already pay for eval tooling line items"},
+    {"criterion": "pain-frequency", "result": "pass", "note": "Major providers shipped silent revisions multiple times per quarter in the observed period"},
+    {"criterion": "reachable-distribution", "result": "pass", "note": "Distribution through the existing regression tracker subscriber list"},
+    {"criterion": "single-fatal-dependency", "result": "pass", "note": "Falls back to response-hash sampling if providers drop version headers"}
+  ],
+  "edge": {
+    "status": "credible",
+    "asset": "A two-year corpus of per-version eval deltas collected in a public regression tracker the user maintains, with 400 subscribers",
+    "control": "The tracker repository and its subscriber list are owned and operated by the user under an open license they control",
+    "evidence_observation_ids": ["OBS-workarounds-02"],
+    "copy_difficulty": "The historical delta corpus cannot be backfilled; a copier starts with zero history and zero subscriber trust",
+    "proof_metric": "Subscriber-to-paid conversion above 5 percent within the first 90 days of a paid tier"
+  },
+  "falsification": {
+    "test": "Publish a manual drift-alert digest for two providers for four weeks and measure signups against the tracker audience",
+    "cost": "roughly 20 hours of manual effort, no capital",
+    "timebox": "4 weeks",
+    "kill_condition": "Fewer than 25 signups from 400 subscribers, or providers announce first-party version-pinned eval reruns"
+  },
+  "lineage": {"parent_ids": [], "operation": "fresh"}
+}
