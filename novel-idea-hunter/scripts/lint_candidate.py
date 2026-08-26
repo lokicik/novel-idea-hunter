@@ -8,11 +8,17 @@ assets. Exit code 0 = clean, 1 = errors found, 2 = usage/IO problem.
 
 Usage:
     python3 lint_candidate.py CANDIDATE.json [CANDIDATE2.json ...]
-        [--observations DIR] [--json]
+        [--observations DIR] [--require-shape SHAPE] [--json]
 
 --observations points at a directory of observation record JSON files; when
 given, every cited observation ID must resolve to a real file. Without it the
 lint still checks ID format and lens diversity (the lens is embedded in the ID).
+
+--require-shape hard-enforces that every candidate's product_shape matches
+the run's declared shape (e.g. the user asked for "saas-subscription" and
+generation must not wander into a differently-shaped idea). Every candidate
+always needs a valid product_shape regardless of this flag; the flag adds a
+per-run consistency check on top.
 """
 
 import argparse
@@ -48,6 +54,10 @@ PRIOR_ART_RELATIONSHIPS = {
     "failed-attempt", "academic", "patent",
 }
 EDGE_STATUSES = {"none", "potential", "credible", "compounding"}
+PRODUCT_SHAPES = {
+    "saas-subscription", "usage-based-platform", "marketplace",
+    "services-led", "open-source-stewardship", "hardware", "data-api-product",
+}
 
 OBS_ID_RE = re.compile(r"^OBS-([a-z0-9-]+)-([0-9]{2,})$")
 CAND_ID_RE = re.compile(r"^CAND-[0-9]{2,}$")
@@ -115,8 +125,11 @@ def _lens_of(obs_id):
     return m.group(1) if m else None
 
 
-def lint_candidate(cand, observation_ids_on_disk=None):
-    """Return (errors, warnings) lists of strings for one candidate dict."""
+def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None):
+    """Return (errors, warnings) lists of strings for one candidate dict.
+
+    required_shape, when given, hard-enforces that this candidate's
+    product_shape matches it (the run-level --require-shape constraint)."""
     errors, warnings = [], []
 
     def need(cond, msg):
@@ -134,6 +147,14 @@ def lint_candidate(cand, observation_ids_on_disk=None):
     need(len(str(cand.get("name", ""))) >= 3, "name missing or too short")
     need(len(str(cand.get("one_liner", ""))) >= 20,
          "one_liner missing or under 20 chars — it must state actor + moment + mechanism")
+
+    # --- product shape ---
+    pshape = cand.get("product_shape", "")
+    need(pshape in PRODUCT_SHAPES, f"product_shape '{pshape}' not in controlled vocabulary {sorted(PRODUCT_SHAPES)} — "
+                                   "declare what kind of thing this is meant to be, it is not optional color")
+    if required_shape is not None:
+        need(pshape == required_shape, f"product_shape '{pshape}' does not match this run's required shape "
+                                       f"'{required_shape}' — generation wandered outside what the user asked for")
 
     # --- evidence trail ---
     obs_ids = cand.get("observation_ids") or []
@@ -313,6 +334,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("candidates", nargs="+", help="candidate JSON file(s)")
     ap.add_argument("--observations", help="directory of observation record JSON files")
+    ap.add_argument("--require-shape", choices=sorted(PRODUCT_SHAPES),
+                     help="fail any candidate whose product_shape isn't this run's declared shape")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)
 
@@ -324,7 +347,7 @@ def main(argv=None):
         except (OSError, json.JSONDecodeError) as exc:
             print(f"error: cannot read {path}: {exc}", file=sys.stderr)
             return 2
-        errors, warnings = lint_candidate(cand, obs_ids)
+        errors, warnings = lint_candidate(cand, obs_ids, args.require_shape)
         any_errors = any_errors or bool(errors)
         results.append({"file": path, "id": cand.get("id"), "errors": errors, "warnings": warnings})
 

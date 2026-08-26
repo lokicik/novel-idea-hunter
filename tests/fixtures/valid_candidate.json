@@ -3,6 +3,7 @@
   "name": "Eval Drift Sentry",
   "one_liner": "Reruns a pinned eval subset whenever an upstream model version silently changes, alerting ML platform teams before drift reaches production.",
   "status": "survivor",
+  "product_shape": "saas-subscription",
   "observation_ids": ["OBS-capability-shifts-01", "OBS-manual-workflows-01", "OBS-workarounds-02"],
   "mechanism": {
     "actor": "ML platform teams maintaining internal eval suites against hosted LLM APIs",

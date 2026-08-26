@@ -19,10 +19,18 @@ sources, unreachable communities, time caps).
 One dossier per survivor (format below). Order by your confidence, and say
 one sentence about why that ordering.
 
-## Worth a mention
-2-4 sentences on the most interesting graveyard entries — candidates killed
-for reasons that could expire (a missing capability, a pending regulation).
-These are the re-run triggers.
+## Runner-up candidates
+A ranked table of **every** non-survivor candidate — not a curated
+highlight reel. This is the menu the search budget actually paid for: when
+the portfolio has one survivor or zero, this table is most of the report,
+not an afterthought below it. Order closest-to-survival first
+(differentiated-but-killed-in-attack, then crowded, then duplicated last):
+
+| Candidate | Killed at | Verdict | Why it died | What would revive it |
+|---|---|---|---|---|
+
+"What would revive it" is a checkable re-run trigger — an incumbent stalls,
+a patent expires, a regulation lands — never a vague "worth watching."
 
 ## What would change these conclusions
 3-5 bullets: the observations that, if wrong, unwind the most.
@@ -81,8 +89,8 @@ the first test.
 - Uncertainty is stated, not hedged into mush: "corroborated by two forum
   threads; not verified against filings" beats both false confidence and
   "may or may not".
-- If the portfolio is empty, the report says so and presents the best
-  graveyard entries with their kill reasons. A run that honestly finds
+- If the portfolio is empty, the report says so and the runner-up table
+  carries the full weight of the deliverable. A run that honestly finds
   nothing beats three zombies — and its observation corpus remains an asset
   for the next run.
 

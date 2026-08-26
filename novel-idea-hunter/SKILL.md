@@ -42,6 +42,16 @@ Pin down with the user (ask only what the brief doesn't already answer):
   a territory or a constraint like "solo-buildable developer tools").
 - Mode (quick/deep), and any constraints: geography, skills, capital,
   B2B/B2C, time horizon.
+- **Product shape** — what kind of thing a survivor should be:
+  `saas-subscription`, `usage-based-platform`, `marketplace`, `services-led`,
+  `open-source-stewardship`, `hardware`, or `data-api-product`. This is not
+  optional color. It selects which mechanism classes Diverge may generate
+  and which kill-criteria profile Attack applies (kill-criteria.md), and it
+  is hard-enforced across the whole run via `lint_candidate.py
+  --require-shape`. "I want a SaaS" means `saas-subscription` — say so, or
+  ask if the user hasn't. Left undeclared, generation follows whatever
+  mechanism class the evidence happens to favor, which is how a request for
+  startup ideas can come back with a robotics-compliance layer.
 - **Private-edge mode**: only if the user explicitly offers private sources
   (their repos, notes, past prototypes). Confirm exactly which sources are
   authorized. Never volunteer to mine private data uninvited.
@@ -49,7 +59,8 @@ Pin down with the user (ask only what the brief doesn't already answer):
 Then scaffold the run and mark phases as you go (update `run.json`):
 
 ```bash
-python3 "$SKILL/scripts/init_run.py" --domain "<domain>" --mode <mode> --out ./idea-runs
+python3 "$SKILL/scripts/init_run.py" --domain "<domain>" --mode <mode> \
+    --product-shape <shape> --out ./idea-runs
 ```
 
 ## Phase 1 — Observe (ideas forbidden)
@@ -99,9 +110,12 @@ Read `references/facets.md` fully. Generate candidates as facet
 recombinations across **≥3 observations from ≥2 lenses** — pain × capability
 × distribution is the workhorse pattern. Every candidate is a JSON file in
 `<run>/candidates/` matching `scripts/schemas/candidate.schema.json`, with
-`descriptor` assigned at creation time and `falsification` written at
-creation time (deciding the kill test while you still love the idea is the
-cheap moment).
+`product_shape` set to the brief's declared shape, `descriptor` assigned at
+creation time, and `falsification` written at creation time (deciding the
+kill test while you still love the idea is the cheap moment). A mechanism
+that keeps wanting to be a different shape than declared is itself a
+finding — record it in the map rather than forcing an ill-fitting wrapper
+onto the candidate.
 
 Maintain the quality-diversity archive per facets.md: one best candidate per
 structural niche `(opportunity_pattern, mechanism_class, target_actor)`; new
@@ -117,7 +131,8 @@ mode: 4-6 across ≥3.
 Read `references/slop-patterns.md` if you have not already. Then run:
 
 ```bash
-python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json --observations <run>/observations/
+python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json \
+    --observations <run>/observations/ --require-shape <shape>
 ```
 
 Fix or kill until every surviving candidate passes with 0 errors (warnings
@@ -138,11 +153,12 @@ to `prosecuted`, re-run lint (it enforces verdict consistency).
 
 ## Phase 7 — Attack
 
-Read `references/kill-criteria.md`. Pick the goal profile the brief implies
-(commercial vs stewardship — grading an open-standard play on revenue
-criteria yields evasive `unclear`s instead of real answers). Apply ≥5
-criteria per candidate, hardest-to-survive first; record every test in
-`kill_tests` and note which profile was used. Kills go to the
+Read `references/kill-criteria.md`. The goal profile follows directly from
+the declared `product_shape`: `open-source-stewardship` uses the stewardship
+profile, every other shape uses the commercial profile — no guessing what
+the brief implies. Apply ≥5 criteria per candidate, hardest-to-survive
+first; record every test in `kill_tests` and note which profile was used.
+Kills go to the
 graveyard with reasons; justified overrides get written notes that a skeptic
 could audit. Survivors get status `attacked`.
 
@@ -182,8 +198,12 @@ acceptable; say so.
 Read `references/report-format.md` and write `<run>/report.md` exactly to
 that skeleton: dossiers with observation citations, prior art with checkable
 differences, edge stated honestly, falsification experiments ordered by
-information-per-dollar. Deliver the report to the user with a short summary
-of how the run went and where the run directory is.
+information-per-dollar, and a ranked runner-up table covering **every**
+non-survivor candidate. A thin survivor count is not a thin report — the
+runner-up table is the menu the user's search budget paid for, and it is
+mandatory even (especially) when there is exactly one survivor or none.
+Deliver the report to the user with a short summary of how the run went and
+where the run directory is.
 
 ## Failure modes to watch in yourself
 

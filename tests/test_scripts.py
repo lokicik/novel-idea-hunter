@@ -65,6 +65,26 @@ class TestLintValidCandidate(unittest.TestCase):
         errors, _ = lint_candidate.lint_candidate(cand)
         self.assertTrue(has_error(errors, "un-overridden kill result"))
 
+    def test_product_shape_required(self):
+        cand = copy.deepcopy(self.cand)
+        del cand["product_shape"]
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "product_shape"))
+
+    def test_product_shape_invalid_value_rejected(self):
+        cand = copy.deepcopy(self.cand)
+        cand["product_shape"] = "vibes-based-platform"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "product_shape"))
+
+    def test_require_shape_mismatch_rejected(self):
+        errors, _ = lint_candidate.lint_candidate(self.cand, required_shape="marketplace")
+        self.assertTrue(has_error(errors, "does not match this run's required shape"))
+
+    def test_require_shape_match_passes(self):
+        errors, _ = lint_candidate.lint_candidate(self.cand, required_shape="saas-subscription")
+        self.assertEqual(errors, [])
+
     def test_survivor_requires_recheck(self):
         cand = copy.deepcopy(self.cand)
         del cand["novelty"]["recheck"]
@@ -245,17 +265,18 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
 class TestInitRun(unittest.TestCase):
     def test_scaffold_layout(self):
         with tempfile.TemporaryDirectory() as tmp:
-            run_dir = init_run.init_run("LLM eval tooling", "deep", tmp)
+            run_dir = init_run.init_run("LLM eval tooling", "deep", "saas-subscription", tmp)
             for sub in init_run.SUBDIRS:
                 self.assertTrue((run_dir / sub).is_dir(), f"missing {sub}/")
             meta = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
             self.assertEqual(meta["mode"], "deep")
+            self.assertEqual(meta["product_shape"], "saas-subscription")
             self.assertEqual([p["name"] for p in meta["phases"]], init_run.PHASES)
             self.assertTrue((run_dir / "notes" / "PROGRESS.md").exists())
 
     def test_slug_in_run_id(self):
         with tempfile.TemporaryDirectory() as tmp:
-            run_dir = init_run.init_run("LLM Eval / Tooling!", "quick", tmp)
+            run_dir = init_run.init_run("LLM Eval / Tooling!", "quick", "saas-subscription", tmp)
             self.assertIn("llm-eval-tooling", run_dir.name)
 
 
@@ -280,6 +301,10 @@ class TestSchemasAndCLI(unittest.TestCase):
         self.assertEqual(set(props["edge"]["properties"]["status"]["enum"]),
                          lint_candidate.EDGE_STATUSES)
         self.assertEqual(set(props["status"]["enum"]), lint_candidate.STATUSES)
+        self.assertEqual(set(props["product_shape"]["enum"]), lint_candidate.PRODUCT_SHAPES)
+
+    def test_product_shape_vocab_matches_init_run(self):
+        self.assertEqual(set(init_run.PRODUCT_SHAPES), lint_candidate.PRODUCT_SHAPES)
 
     def test_observation_loading_recurses_subdirs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -293,6 +318,11 @@ class TestSchemasAndCLI(unittest.TestCase):
     def test_lint_cli_exit_codes(self):
         self.assertEqual(lint_candidate.main([str(FIXTURES / "valid_candidate.json")]), 0)
         self.assertEqual(lint_candidate.main([str(FIXTURES / "slop_candidate.json")]), 1)
+
+    def test_lint_cli_require_shape(self):
+        valid = str(FIXTURES / "valid_candidate.json")
+        self.assertEqual(lint_candidate.main([valid, "--require-shape", "saas-subscription"]), 0)
+        self.assertEqual(lint_candidate.main([valid, "--require-shape", "marketplace"]), 1)
 
 
 if __name__ == "__main__":

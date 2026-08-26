@@ -4,7 +4,7 @@
   "title": "Candidate opportunity",
   "description": "A candidate opportunity generated in the Diverge phase. Every field exists to make a specific failure mode impossible: untraceable ideas, vague mechanisms, self-graded novelty, and edge claims without assets. lint_candidate.py enforces this schema plus the deterministic slop gate.",
   "type": "object",
-  "required": ["id", "name", "one_liner", "status", "observation_ids", "mechanism", "descriptor", "novelty", "edge", "falsification"],
+  "required": ["id", "name", "one_liner", "status", "product_shape", "observation_ids", "mechanism", "descriptor", "novelty", "edge", "falsification"],
   "properties": {
     "id": { "type": "string", "pattern": "^CAND-[0-9]{2,}$" },
     "name": { "type": "string", "minLength": 3, "maxLength": 80 },
@@ -13,6 +13,11 @@
       "type": "string",
       "enum": ["draft", "gated", "prosecuted", "attacked", "survivor", "killed"],
       "description": "Pipeline position. Lint requirements tighten as status advances; 'survivor' must pass everything."
+    },
+    "product_shape": {
+      "type": "string",
+      "enum": ["saas-subscription", "usage-based-platform", "marketplace", "services-led", "open-source-stewardship", "hardware", "data-api-product"],
+      "description": "The kind of thing this candidate is, declared at run scaffolding (init_run.py --product-shape) and inherited by every candidate. Not optional color: it selects the Attack goal profile (kill-criteria.md) and can be hard-enforced across a whole run via lint_candidate.py --require-shape, so generation cannot wander into a shape the user never asked for."
     },
     "observation_ids": {
       "type": "array",

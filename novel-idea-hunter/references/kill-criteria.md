@@ -12,19 +12,22 @@ budget destroying candidates cheaply, not to complete a checklist.
 
 ## Goal profiles
 
-Match the criteria to what the brief says winning means. Grading a
-stewardship play with revenue criteria produces evasive `unclear` results
+The profile follows directly from the candidate's declared `product_shape`
+(candidate.schema.json) — not from guessing what the brief implies. Grading
+a stewardship play with revenue criteria produces evasive `unclear` results
 that hide real risks — the wrong questions get soft answers while the right
 questions never get asked.
 
-**Commercial profile** (default): the candidate is a business. Core set:
+**Commercial profile** — `product_shape` is `saas-subscription`,
+`usage-based-platform`, `marketplace`, `services-led`, `hardware`, or
+`data-api-product`: the candidate is a business. Core set:
 `incumbent-weekend-build`, `buyer-has-budget`, `pain-frequency`,
 `reachable-distribution`, `workaround-is-good-enough`, plus any others that
 bite.
 
-**Stewardship profile** (use when the brief accepts open-source, standards,
-or positional outcomes): replace `buyer-has-budget` and `unit-economics-smell`
-with `adoption-gatekeeper` and `sustainability-path`. Everything else still
+**Stewardship profile** — `product_shape` is `open-source-stewardship`:
+replace `buyer-has-budget` and `unit-economics-smell` with
+`adoption-gatekeeper` and `sustainability-path`. Everything else still
 applies — a stewardship play with no reachable distribution or a live legal
 landmine is just as dead as a business with those problems.
 

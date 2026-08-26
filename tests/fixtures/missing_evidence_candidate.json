@@ -3,6 +3,7 @@
   "name": "Procurement Clause Differ",
   "one_liner": "Diffs enterprise procurement questionnaires against a vendor's previous answers and flags newly added clauses for review.",
   "status": "prosecuted",
+  "product_shape": "saas-subscription",
   "observation_ids": ["OBS-pricing-incentives-01", "OBS-pricing-incentives-02"],
   "mechanism": {
     "actor": "founders of small B2B vendors answering enterprise security questionnaires",
