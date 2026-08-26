@@ -35,6 +35,19 @@ Choose mode from the user's brief:
   For a first pass on a domain.
 - **deep** (default) — 6-8 lenses, full archive dynamics, full attack.
 
+Mode controls research depth. **Breadth** is a separate axis (Phase 0)
+controlling how many candidates get generated and how far the recombination
+search reaches:
+- **focused** (default) — the standard funnel in Phase 4.
+- **wide** — several times more candidates, a required quota of
+  deliberately maximum-distance ("collision search," facets.md)
+  recombinations, and a portfolio ceiling raised above the default 3. Use
+  this when the user wants more survivor options, or wants genuinely
+  contrarian territory rather than the single safest defensible move. It
+  costs several times more tokens and wall-clock time — every extra
+  candidate still gets a full prosecution and attack pass — for a wider,
+  weirder funnel, never for a softer bar.
+
 ## Phase 0 — Brief
 
 Pin down with the user (ask only what the brief doesn't already answer):
@@ -52,6 +65,12 @@ Pin down with the user (ask only what the brief doesn't already answer):
   ask if the user hasn't. Left undeclared, generation follows whatever
   mechanism class the evidence happens to favor, which is how a request for
   startup ideas can come back with a robotics-compliance layer.
+- **Breadth and survivor ceiling** — default `focused` breadth, up to 3
+  survivors. If the user wants more options to choose from, or explicitly
+  wants wilder/contrarian territory instead of the single safest move, set
+  `breadth=wide` and raise `max_survivors` (up to 6) — but say the cost
+  tradeoff out loud first (several times more candidates, each getting a
+  full prosecution and attack pass) so it's a decision, not a surprise.
 - **Private-edge mode**: only if the user explicitly offers private sources
   (their repos, notes, past prototypes). Confirm exactly which sources are
   authorized. Never volunteer to mine private data uninvited.
@@ -60,7 +79,8 @@ Then scaffold the run and mark phases as you go (update `run.json`):
 
 ```bash
 python3 "$SKILL/scripts/init_run.py" --domain "<domain>" --mode <mode> \
-    --product-shape <shape> --out ./idea-runs
+    --product-shape <shape> --breadth <focused|wide> \
+    --max-survivors <n> --out ./idea-runs
 ```
 
 ## Phase 1 — Observe (ideas forbidden)
@@ -123,8 +143,12 @@ candidates compete only within their niche; stalls are broken by single-facet
 mutation of archive members; the graveyard is consulted before generating so
 corpses stay buried without new evidence.
 
-Deep mode: target 8-15 candidates across ≥5 niches before gating. Quick
-mode: 4-6 across ≥3.
+Generation targets depend on breadth, not just mode:
+- **focused** — deep: 8-15 candidates across ≥5 niches. Quick: 4-6 across ≥3.
+- **wide** — deep: 20-30 candidates across ≥10 niches. Quick: 10-15 across
+  ≥6. At least a third of candidates must come from collision search
+  (facets.md move 6) — the point of wide breadth is territory a focused run
+  would never generate, not more of the same shape.
 
 ## Phase 5 — Slop gate
 
@@ -179,11 +203,12 @@ available, 2-4 queries) aimed only at the differentiation claim, recorded in
 `novelty.recheck`. An overturned re-check sends the candidate back to
 prosecution with the new evidence.
 
-Then promote at most 3 candidates to status `survivor` (re-run lint —
-survivor status tightens requirements: ≥5 kill tests, verdict consistency,
-crowded needs credible edge, upheld re-check). Write
-`<run>/portfolio/portfolio.json` per `scripts/schemas/portfolio.schema.json`,
-then audit:
+Then promote up to `max_survivors` candidates (declared in Phase 0, default
+3) to status `survivor` (re-run lint — survivor status tightens
+requirements: ≥5 kill tests, verdict consistency, crowded needs credible
+edge, upheld re-check). Write `<run>/portfolio/portfolio.json` per
+`scripts/schemas/portfolio.schema.json` (including `max_survivors`), then
+audit:
 
 ```bash
 python3 "$SKILL/scripts/check_portfolio.py" <run>
@@ -191,7 +216,8 @@ python3 "$SKILL/scripts/check_portfolio.py" <run>
 
 Fix errors — structural clones mean going back to the archive for a
 different-niche candidate, not re-wording a survivor. Zero survivors is
-acceptable; say so.
+acceptable; say so. A raised ceiling is permission, not a quota: promote
+what actually survived, never pad toward `max_survivors`.
 
 ## Phase 10 — Report
 
@@ -216,3 +242,6 @@ where the run directory is.
   A run that returns "this space is crowded and here is the map" succeeded.
 - **Excitement leak**: report language drifting into pitch language. Re-read
   the language rules in report-format.md before delivering.
+- **Ceiling padding**: raising `max_survivors` and then promoting whatever
+  is left to hit the number. The ceiling is ambition, not a target — a wide
+  run that still returns 1 survivor and 25 honest kills succeeded.

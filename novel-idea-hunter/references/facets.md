@@ -53,6 +53,28 @@ Generative moves, roughly in order of yield:
 5. **Trust productization**: a `trust_requirement` bottleneck + a capability
    that generates the missing proof. Verification layers age well because
    trust demand grows with automation.
+6. **Collision search (maximum-distance pairing)**: deliberately pick the
+   two clusters on the map that share the *least* — different lens,
+   different actor, different vocabulary, no obvious reason to mention them
+   in the same sentence — and force a mechanism connecting them anyway. This
+   is where genuinely wild candidates come from: the reader's first reaction
+   should be "wait, how do those connect?", answered by a mechanism that
+   holds up under exactly the same rules as every other candidate. Wildness
+   lives entirely in facet *distance* — never in relaxed evidence, a thinner
+   mechanism, or a skipped falsification test. A collision-search candidate
+   still needs ≥3 observations from ≥2 lenses and a real 2-4 step mechanism;
+   the only thing that changed is how far apart the ingredients started. Hit
+   rate is low by design — most attempts won't produce a real mechanism, and
+   that is fine. Discard the ones that don't; a stalled attempt costs little
+   and the occasional hit is worth more than another safe pain×capability
+   candidate, because the archive already has plenty of those.
+
+Moves 1-5 are the default funnel (any breadth). Move 6 is required in
+proportion when a run declares `breadth: wide` (see SKILL.md Phase 4) —
+that is the mechanical difference between asking for "more ideas" and
+asking for "wilder ideas": more of moves 1-5 gives you more of the same
+shape; a quota of move 6 forces the search into territory the safer moves
+never reach.
 
 ## Relational analogy — structure, not vocabulary
 

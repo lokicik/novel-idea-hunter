@@ -180,7 +180,7 @@ class _RunDirMixin:
 
     OBS_IDS = ["OBS-capability-shifts-01", "OBS-manual-workflows-01", "OBS-workarounds-02"]
 
-    def make_run(self, root, survivors):
+    def make_run(self, root, survivors, max_survivors=3):
         run = Path(root) / "run"
         for sub in ("observations", "candidates", "graveyard", "portfolio"):
             (run / sub).mkdir(parents=True)
@@ -190,6 +190,7 @@ class _RunDirMixin:
             (run / "candidates" / f"{cand['id']}.json").write_text(json.dumps(cand), encoding="utf-8")
         portfolio = {
             "run_id": "test-run", "domain": "test", "mode": "quick",
+            "max_survivors": max_survivors,
             "survivors": [c["id"] for c in survivors],
             "candidates_considered": max(len(survivors) + 5, 6),
             "graveyard_count": 0,
@@ -233,13 +234,69 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
             errors, _ = check_portfolio.audit_portfolio(portfolio, cands, obs, gy)
         self.assertTrue(has_error(errors, "same idea wearing different words"))
 
-    def test_more_than_three_survivors_fail(self):
+    def test_more_than_default_ceiling_survivors_fail(self):
         cands = [self.variant(f"CAND-0{i}", f"Idea {i}") for i in range(1, 5)]
         with tempfile.TemporaryDirectory() as tmp:
-            run = self.make_run(tmp, cands)
+            run = self.make_run(tmp, cands)  # default max_survivors=3
             portfolio, by_id, obs, gy = check_portfolio.load_run(run)
             errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
-        self.assertTrue(has_error(errors, "at most 3"))
+        self.assertTrue(has_error(errors, "declared a ceiling of 3"))
+
+    def test_raised_ceiling_allows_more_survivors(self):
+        niches = [
+            ("capability-threshold-crossing", "monitoring-alerting", "ML platform teams"),
+            ("workaround-productization", "translation-bridge", "small B2B vendor founders"),
+            ("trust-gap", "verification-layer", "repo maintainers"),
+            ("regulatory-wedge", "compliance-automation", "compliance leads"),
+        ]
+        cands = [self.variant(f"CAND-0{i}", f"Idea {i}", pattern=p, mech_class=mc, actor=a)
+                 for i, (p, mc, a) in enumerate(niches, start=1)]
+        for c in cands:
+            c["one_liner"] = f"{c['one_liner']} (variant {c['id']})"
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.make_run(tmp, cands, max_survivors=5)
+            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+        self.assertEqual(errors, [])
+
+    def test_ceiling_enforced_even_for_structurally_distinct_candidates(self):
+        # 4 distinct-niche candidates would otherwise pass the redundancy
+        # audit cleanly — the ceiling check must fire independently of it.
+        niches = [
+            ("capability-threshold-crossing", "monitoring-alerting", "ML platform teams"),
+            ("workaround-productization", "translation-bridge", "small B2B vendor founders"),
+            ("trust-gap", "verification-layer", "repo maintainers"),
+            ("regulatory-wedge", "compliance-automation", "compliance leads"),
+        ]
+        cands = [self.variant(f"CAND-0{i}", f"Idea {i}", pattern=p, mech_class=mc, actor=a)
+                 for i, (p, mc, a) in enumerate(niches, start=1)]
+        for c in cands:
+            c["one_liner"] = f"{c['one_liner']} (variant {c['id']})"
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.make_run(tmp, cands, max_survivors=3)  # default ceiling, not raised
+            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+        self.assertTrue(has_error(errors, "declared a ceiling of 3"))
+        self.assertFalse(has_error(errors, "same idea wearing different words"))
+
+    def test_max_survivors_field_missing_flagged(self):
+        a = self.variant("CAND-01", "Eval Drift Sentry")
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.make_run(tmp, [a])
+            portfolio = json.loads((run / "portfolio" / "portfolio.json").read_text())
+            del portfolio["max_survivors"]
+            (run / "portfolio" / "portfolio.json").write_text(json.dumps(portfolio))
+            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+        self.assertTrue(has_error(errors, "missing required field 'max_survivors'"))
+
+    def test_max_survivors_out_of_range_rejected(self):
+        a = self.variant("CAND-01", "Eval Drift Sentry")
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.make_run(tmp, [a], max_survivors=9)
+            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+        self.assertTrue(has_error(errors, "must be an integer from 1 to 6"))
 
     def test_missing_survivor_file_fails(self):
         a = self.variant("CAND-01", "Eval Drift Sentry")
@@ -278,6 +335,22 @@ class TestInitRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = init_run.init_run("LLM Eval / Tooling!", "quick", "saas-subscription", tmp)
             self.assertIn("llm-eval-tooling", run_dir.name)
+
+    def test_breadth_and_max_survivors_default(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = init_run.init_run("Focused idea", "quick", "saas-subscription", tmp)
+            meta = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["breadth"], "focused")
+            self.assertEqual(meta["max_survivors"], 3)
+
+    def test_breadth_and_max_survivors_recorded_when_set(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = init_run.init_run("Wild ideas", "deep", "saas-subscription", tmp,
+                                        breadth="wide", max_survivors=5)
+            meta = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["breadth"], "wide")
+            self.assertEqual(meta["max_survivors"], 5)
+            self.assertIn("Breadth: wide", (run_dir / "notes" / "PROGRESS.md").read_text())
 
 
 class TestSchemasAndCLI(unittest.TestCase):

@@ -39,7 +39,7 @@ def slugify(text, max_len=40):
     return slug[:max_len].rstrip("-") or "run"
 
 
-def init_run(domain, mode, product_shape, out_dir):
+def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_survivors=3):
     now = _dt.datetime.now()
     run_id = f"{now:%Y%m%d-%H%M%S}-{slugify(domain)}"
     run_dir = Path(out_dir) / run_id
@@ -52,12 +52,15 @@ def init_run(domain, mode, product_shape, out_dir):
         "domain": domain,
         "mode": mode,
         "product_shape": product_shape,
+        "breadth": breadth,
+        "max_survivors": max_survivors,
         "created": now.isoformat(timespec="seconds"),
         "phases": [{"name": p, "status": "pending"} for p in PHASES],
     }
     (run_dir / "run.json").write_text(json.dumps(run_meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (run_dir / "notes" / "PROGRESS.md").write_text(
-        f"# Run {run_id}\n\nDomain: {domain}\nMode: {mode}\nProduct shape: {product_shape}\n\n"
+        f"# Run {run_id}\n\nDomain: {domain}\nMode: {mode}\nProduct shape: {product_shape}\n"
+        f"Breadth: {breadth}\nMax survivors: {max_survivors}\n\n"
         + "".join(f"- [ ] {p}\n" for p in PHASES)
         + "\nUpdate run.json phase statuses (pending -> in-progress -> done) as you go.\n",
         encoding="utf-8",
@@ -71,10 +74,17 @@ def main(argv=None):
     ap.add_argument("--mode", choices=["quick", "deep"], default="deep")
     ap.add_argument("--product-shape", required=True, choices=PRODUCT_SHAPES,
                      help="the kind of thing a survivor should be — drives Diverge and the Attack goal profile")
+    ap.add_argument("--breadth", choices=["focused", "wide"], default="focused",
+                     help="wide widens candidate generation and requires a quota of deliberately "
+                          "maximum-distance ('collision search') recombinations — costs several times "
+                          "more tokens/time for a wider, weirder funnel, not a softer bar")
+    ap.add_argument("--max-survivors", type=int, choices=[1, 2, 3, 4, 5, 6], default=3,
+                     help="portfolio ceiling (default 3); still a ceiling, not a quota to pad toward")
     ap.add_argument("--out", default="idea-runs", help="parent directory for runs (default ./idea-runs)")
     args = ap.parse_args(argv)
     try:
-        run_dir = init_run(args.domain, args.mode, args.product_shape, args.out)
+        run_dir = init_run(args.domain, args.mode, args.product_shape, args.out,
+                            breadth=args.breadth, max_survivors=args.max_survivors)
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

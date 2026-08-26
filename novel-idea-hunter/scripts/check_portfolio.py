@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Structural-redundancy and concentration audit for a run's final portfolio.
 
-Plain top-N scoring reliably promotes three paraphrases of the same idea. This
-audit compares survivors by their structural descriptor coordinates, not their
+Plain top-N scoring reliably promotes near-duplicate top picks. This audit
+compares survivors by their structural descriptor coordinates, not their
 wording, so a portfolio of near-clones fails even when every individual
-candidate lints clean. Exit code 0 = clean, 1 = errors found, 2 = usage/IO.
+candidate lints clean. The survivor ceiling itself is per-run
+(portfolio.max_survivors, default 3, up to 6 via init_run.py
+--max-survivors) — raising it widens what a run may return, it does not
+loosen this audit. Exit code 0 = clean, 1 = errors found, 2 = usage/IO.
 
 Usage:
     python3 check_portfolio.py RUN_DIR [--json]
@@ -48,15 +51,20 @@ def audit_portfolio(portfolio, candidates_by_id, observation_ids=None, graveyard
     """Return (errors, warnings). candidates_by_id maps CAND id -> candidate dict."""
     errors, warnings = [], []
 
-    for key in ("run_id", "domain", "mode", "survivors", "candidates_considered", "graveyard_count"):
+    for key in ("run_id", "domain", "mode", "max_survivors", "survivors", "candidates_considered", "graveyard_count"):
         if key not in portfolio:
             errors.append(f"portfolio missing required field '{key}'")
     if portfolio.get("mode") not in MODES:
         errors.append(f"portfolio.mode '{portfolio.get('mode')}' not in {sorted(MODES)}")
 
+    max_survivors = portfolio.get("max_survivors", 3)
+    if not isinstance(max_survivors, int) or not (1 <= max_survivors <= 6):
+        errors.append(f"portfolio.max_survivors '{max_survivors}' must be an integer from 1 to 6")
+
     survivors = portfolio.get("survivors") or []
-    if len(survivors) > 3:
-        errors.append(f"{len(survivors)} survivors listed; at most 3 allowed — forced concentration is the point")
+    if len(survivors) > max_survivors:
+        errors.append(f"{len(survivors)} survivors listed; this run declared a ceiling of {max_survivors} — "
+                      "forced concentration is the point even when the ceiling is raised")
     if len(survivors) != len(set(survivors)):
         errors.append("duplicate ids in survivors list")
 

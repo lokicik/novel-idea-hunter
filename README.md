@@ -112,6 +112,30 @@ closest-to-survival first, with a checkable condition that would revive
 each one. A run that returns one survivor (or zero) still hands you the
 full field it considered, not a single verdict.
 
+**Want more options, or genuinely wild territory?** Ask for `wide` breadth:
+
+```
+/novel-idea-hunter deep mode, wide breadth, up to 5 survivors: SaaS
+opportunities in home energy monitoring. Give me some real reaches, not
+just the safest move.
+```
+
+`breadth: wide` widens the candidate funnel several times over (deep mode:
+20-30 candidates across ≥10 structural niches, vs 8-15/≥5 focused) and
+requires at least a third of them to come from *collision search* —
+deliberately pairing the two least-related evidence clusters on the map and
+forcing a mechanism between them, instead of the safer pain×capability
+combinations. This is where the wild ideas come from, and it is the only
+thing that changes: every candidate, however weird its origin, still needs
+the same ≥3-observation evidence trail, the same 2-4 step mechanism, the
+same adversarial prosecution, and the same falsification test as a focused
+run. Wide breadth raises the portfolio ceiling (`--max-survivors`, up to 6)
+so a wider funnel can actually return more survivors — but the ceiling is
+a permission, not a quota: a wide run that returns one real survivor and 25
+honest kills did its job. It also costs several times more tokens and
+wall-clock time, since every extra candidate gets its own full prosecution
+and attack pass — say so before running it.
+
 Private-edge mode (opt-in — the skill never mines private data uninvited):
 
 ```
@@ -186,3 +210,14 @@ had asked for options, not one verdict. Two gaps caused this:
    Fixed: `report-format.md` now requires a ranked runner-up table covering
    every non-survivor candidate, mandatory precisely when the survivor
    count is thin.
+
+The user's immediate follow-up made the actual want explicit: more
+survivors, and genuinely wild ones — not just a bigger report about the
+same single safe idea. That's a request for more raw material and a wider
+search, not a softer gate, so the fix runs upstream of the report:
+`breadth: wide` (declared at `init_run.py`, enforced nowhere near the
+quality bar) widens Diverge's candidate count several-fold and mandates a
+quota of collision-search recombinations (`facets.md`), while
+`--max-survivors` (up to 6) raises how many can be promoted *if* that many
+actually survive prosecution and attack unchanged. See the Usage section
+above for the `wide`-breadth example.
