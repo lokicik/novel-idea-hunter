@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "novel-idea-hunter/probe.schema.json",
+  "title": "Occupancy probe",
+  "description": "A cheap triage search run BEFORE candidates are written, over a candidate SHAPE rather than a finished candidate. Two full runs produced 44 candidates and 44 deaths, none of which failed on mechanism quality — they failed on prior art or on adoption standing, both of which a one-or-two-query probe surfaces at a fraction of the cost of generating and prosecuting a candidate. A probe is deliberately shallow and its status is NOT a novelty verdict: only the prosecutor may fill novelty.verdict. See references/occupancy-probe.md.",
+  "type": "object",
+  "required": ["id", "shape", "niche", "queries", "status"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^PROBE-[0-9]{2,}$" },
+    "shape": {
+      "type": "string",
+      "minLength": 20,
+      "description": "One line naming the candidate shape being probed: actor + mechanism sketch. Not a finished candidate — if you can only describe it by writing the whole candidate, the probe is too late."
+    },
+    "niche": {
+      "type": "object",
+      "required": ["opportunity_pattern", "mechanism_class", "target_actor"],
+      "description": "The structural niche this shape would occupy, using candidate.schema.json's controlled vocabularies. Probing per niche rather than per candidate is what keeps this cheap.",
+      "properties": {
+        "opportunity_pattern": { "type": "string" },
+        "mechanism_class": { "type": "string" },
+        "target_actor": { "type": "string" }
+      }
+    },
+    "queries": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": { "type": "string" },
+      "description": "The queries actually run. Cap is 4 by design: a probe that needs more than four searches is prosecution wearing a probe's name, and should be deferred to Phase 6 where it belongs."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["clear", "occupied", "contested"],
+      "description": "clear = nothing obvious found in a shallow look, so generate freely. occupied = something shipped and alive does this, so a candidate needs a stated difference before it is worth writing. contested = several attempts are visible and some died, which is the most informative outcome: generate, but carry what killed the predecessors."
+    },
+    "found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "url"],
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string" },
+          "state": { "type": "string", "enum": ["shipping", "stalled", "abandoned", "proposed-unadopted"], "description": "Dead and stalled entries are the point of the contested status — a predecessor abandoned in two days is worth more than a competitor still shipping." },
+          "note": { "type": "string" }
+        }
+      },
+      "description": "Required non-empty for occupied and contested. An occupancy claim must point at what it found."
+    },
+    "note": { "type": "string", "description": "One or two sentences: what the shallow look suggests, and what a candidate in this shape would have to answer." }
+  }
+}

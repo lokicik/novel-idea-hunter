@@ -15,9 +15,15 @@ execute."**
 
 Assign exactly one (requirements enforced by lint):
 
-**`none`** — no defensible edge identified. Honest and common. A candidate
-with `none` can still be a fine business — it just wins on execution, and the
-report must say so plainly.
+**`none`** — no defensible edge identified. Honest and common, and **not a
+disqualification**. A candidate with `none` can still be a fine business — it
+just wins on execution, and the report must say so plainly. Edge answers
+"can this be defended over years"; whether it can be started at all is a
+different question that belongs to Attack. Note also that a public-web-only
+run caps every candidate at `none` by construction, so in such a run this
+status carries no information about any individual candidate — treating it
+as a signal there is a category error, and it is exactly the error that
+silently eliminated nineteen candidates across two early runs.
 
 **`potential`** — a plausible edge is named (`asset` filled) but not yet
 verified: e.g. "the user's regression tracker audience could seed

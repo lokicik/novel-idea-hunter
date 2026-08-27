@@ -46,24 +46,111 @@ class TestLintValidCandidate(unittest.TestCase):
         errors, _ = lint_candidate.lint_candidate(self.cand, on_disk)
         self.assertEqual(errors, [])
 
-    def test_survivor_crowded_requires_real_edge(self):
+    def test_crowded_survivor_allowed_without_proprietary_edge(self):
+        # Occupancy is not by itself disqualifying: a crowded candidate that
+        # names what stops the incumbent and how it reaches the buyer survives
+        # even with edge 'none', which is what a public-web run always yields.
         cand = copy.deepcopy(self.cand)
         cand["novelty"]["verdict"] = "crowded"
         cand["edge"] = {"status": "none"}
         errors, _ = lint_candidate.lint_candidate(cand)
-        self.assertTrue(has_error(errors, "crowded"))
+        self.assertEqual(errors, [])
+
+    def test_crowded_survivor_needs_incumbent_and_distribution_passing(self):
+        cand = copy.deepcopy(self.cand)
+        cand["novelty"]["verdict"] = "crowded"
+        cand["edge"] = {"status": "none"}
+        for t in cand["kill_tests"]:
+            if t["criterion"] == "reachable-distribution":
+                t["result"] = "unclear"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "reachable-distribution"))
+
+    def test_crowded_survivor_needs_those_criteria_applied_at_all(self):
+        cand = copy.deepcopy(self.cand)
+        cand["novelty"]["verdict"] = "crowded"
+        cand["edge"] = {"status": "none"}
+        cand["kill_tests"] = [t for t in cand["kill_tests"]
+                              if t["criterion"] != "incumbent-weekend-build"]
+        # keep the survivor kill-test count valid so only the new rule fires
+        cand["kill_tests"].append({"criterion": "why-now-really", "result": "pass", "note": "n/a"})
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "did not apply 'incumbent-weekend-build'"))
+
+    def test_duplicated_on_dead_prior_art_rejected(self):
+        # A predecessor that died makes the space contested, not closed.
+        cand = copy.deepcopy(self.cand)
+        cand["status"] = "prosecuted"
+        cand["kill_tests"] = []
+        cand["novelty"]["verdict"] = "duplicated"
+        for art in cand["novelty"]["closest_prior_art"]:
+            art["state"] = "abandoned"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "contested, not closed"))
+
+    def test_duplicated_on_live_prior_art_allowed(self):
+        cand = copy.deepcopy(self.cand)
+        cand["status"] = "prosecuted"
+        cand["kill_tests"] = []
+        cand["novelty"]["verdict"] = "duplicated"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertEqual(errors, [])
+
+    def test_prior_art_state_vocabulary_enforced(self):
+        cand = copy.deepcopy(self.cand)
+        cand["novelty"]["closest_prior_art"][0]["state"] = "sort-of-alive"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "state 'sort-of-alive'"))
 
     def test_survivor_duplicated_cannot_survive(self):
         cand = copy.deepcopy(self.cand)
         cand["novelty"]["verdict"] = "duplicated"
         errors, _ = lint_candidate.lint_candidate(cand)
-        self.assertTrue(has_error(errors, "duplicate cannot survive"))
+        self.assertTrue(has_error(errors, "a live product already serves this actor"))
 
     def test_unjustified_kill_override_fails_survivor(self):
         cand = copy.deepcopy(self.cand)
         cand["kill_tests"][0] = {"criterion": "incumbent-weekend-build", "result": "kill", "note": ""}
         errors, _ = lint_candidate.lint_candidate(cand)
         self.assertTrue(has_error(errors, "un-overridden kill result"))
+
+    def test_probe_id_required(self):
+        cand = copy.deepcopy(self.cand)
+        del cand["probe_id"]
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "probe_id"))
+
+    def test_probe_must_resolve_when_probes_given(self):
+        errors, _ = lint_candidate.lint_candidate(self.cand, probes_on_disk={})
+        self.assertTrue(has_error(errors, "not found on disk"))
+
+    def test_clear_probe_needs_no_response(self):
+        probes = {"PROBE-01": load_fixture("probe_clear.json")}
+        errors, _ = lint_candidate.lint_candidate(self.cand, probes_on_disk=probes)
+        self.assertEqual(errors, [])
+
+    def test_occupied_probe_requires_probe_response(self):
+        cand = copy.deepcopy(self.cand)
+        cand["probe_id"] = "PROBE-02"
+        probes = {"PROBE-02": load_fixture("probe_occupied.json")}
+        errors, _ = lint_candidate.lint_candidate(cand, probes_on_disk=probes)
+        self.assertTrue(has_error(errors, "specific difference from what is already shipping"))
+
+    def test_contested_probe_requires_probe_response(self):
+        cand = copy.deepcopy(self.cand)
+        cand["probe_id"] = "PROBE-03"
+        probes = {"PROBE-03": load_fixture("probe_contested.json")}
+        errors, _ = lint_candidate.lint_candidate(cand, probes_on_disk=probes)
+        self.assertTrue(has_error(errors, "what killed the earlier attempts"))
+
+    def test_probe_response_satisfies_occupied_probe(self):
+        cand = copy.deepcopy(self.cand)
+        cand["probe_id"] = "PROBE-02"
+        cand["probe_response"] = ("Existing vendors answer questionnaires from a library; none diff "
+                                  "incoming clauses against prior answers to flag what changed.")
+        probes = {"PROBE-02": load_fixture("probe_occupied.json")}
+        errors, _ = lint_candidate.lint_candidate(cand, probes_on_disk=probes)
+        self.assertEqual(errors, [])
 
     def test_product_shape_required(self):
         cand = copy.deepcopy(self.cand)
@@ -220,8 +307,8 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
         b["one_liner"] = "Matches incoming procurement questionnaire clauses to a vendor's prior answers and flags what changed."
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, [a, b])
-            portfolio, cands, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, cands, obs, gy)
+            portfolio, cands, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, cands, obs, gy, probes)
         self.assertEqual(errors, [])
 
     def test_structural_clones_fail(self):
@@ -230,16 +317,16 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
         b["one_liner"] = "Watches hosted model builds and replays regression checks so platform teams catch changes early."
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, [a, b])
-            portfolio, cands, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, cands, obs, gy)
+            portfolio, cands, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, cands, obs, gy, probes)
         self.assertTrue(has_error(errors, "same idea wearing different words"))
 
     def test_more_than_default_ceiling_survivors_fail(self):
         cands = [self.variant(f"CAND-0{i}", f"Idea {i}") for i in range(1, 5)]
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, cands)  # default max_survivors=3
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "declared a ceiling of 3"))
 
     def test_raised_ceiling_allows_more_survivors(self):
@@ -255,8 +342,8 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
             c["one_liner"] = f"{c['one_liner']} (variant {c['id']})"
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, cands, max_survivors=5)
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertEqual(errors, [])
 
     def test_ceiling_enforced_even_for_structurally_distinct_candidates(self):
@@ -274,8 +361,8 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
             c["one_liner"] = f"{c['one_liner']} (variant {c['id']})"
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, cands, max_survivors=3)  # default ceiling, not raised
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "declared a ceiling of 3"))
         self.assertFalse(has_error(errors, "same idea wearing different words"))
 
@@ -286,16 +373,16 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
             portfolio = json.loads((run / "portfolio" / "portfolio.json").read_text())
             del portfolio["max_survivors"]
             (run / "portfolio" / "portfolio.json").write_text(json.dumps(portfolio))
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "missing required field 'max_survivors'"))
 
     def test_max_survivors_out_of_range_rejected(self):
         a = self.variant("CAND-01", "Eval Drift Sentry")
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, [a], max_survivors=9)
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "must be an integer from 1 to 6"))
 
     def test_missing_survivor_file_fails(self):
@@ -305,8 +392,8 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
             portfolio = json.loads((run / "portfolio" / "portfolio.json").read_text())
             portfolio["survivors"].append("CAND-99")
             (run / "portfolio" / "portfolio.json").write_text(json.dumps(portfolio))
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "no candidate file"))
 
     def test_non_survivor_status_fails(self):
@@ -314,8 +401,8 @@ class TestPortfolioAudit(_RunDirMixin, unittest.TestCase):
         a["status"] = "attacked"
         with tempfile.TemporaryDirectory() as tmp:
             run = self.make_run(tmp, [a])
-            portfolio, by_id, obs, gy = check_portfolio.load_run(run)
-            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy)
+            portfolio, by_id, obs, gy, probes = check_portfolio.load_run(run)
+            errors, _ = check_portfolio.audit_portfolio(portfolio, by_id, obs, gy, probes)
         self.assertTrue(has_error(errors, "status is 'attacked'"))
 
 

@@ -38,11 +38,32 @@ Crunchbase-style shutdown lists, Google Scholar.
 
 Exactly one of (lint enforces the vocabulary and its consistency rules):
 
-- `duplicated` — a live product does substantially this, for this actor.
-  Terminal: a duplicate cannot survive to the portfolio.
-- `crowded` — several products adjacent enough that winning requires beating
-  incumbents at their own game. Survivable **only** with edge status
-  `credible` or better.
+- `duplicated` — a **live, maintained** product does substantially this, for
+  this actor. Terminal. The word "live" is load-bearing: if every prior-art
+  entry you found is abandoned, stalled or merely proposed, the space is
+  contested rather than closed, and the verdict is `crowded` or
+  `differentiated` instead. Record each entry's `state`
+  (`shipping` / `stalled` / `abandoned` / `proposed-unadopted`) — lint
+  rejects a `duplicated` verdict resting entirely on dead predecessors.
+  A predecessor that died is not an obstacle; it is the most useful thing
+  in the file, because it tells you what the space punishes.
+- `crowded` — several products adjacent enough that winning means competing
+  on the incumbents' own ground. **Not disqualifying by itself.** Most
+  worthwhile things are built in occupied space; "somebody already does
+  something like this" eliminates almost every real business if taken as a
+  kill on its own. What a crowded candidate owes is not an asset but a
+  reason: a named structural cause the incumbent will not serve this wedge,
+  and a named path to the buyer. Lint enforces exactly that — a crowded
+  survivor must carry `incumbent-weekend-build` and `reachable-distribution`
+  both passing in `kill_tests`.
+
+  This replaces an earlier rule that required a `credible` proprietary edge.
+  That rule read as rigour but behaved as arithmetic: `edge-verification.md`
+  caps public-web research at `none`, so every crowded candidate in every
+  public run died before anyone judged it. Nineteen candidates across two
+  runs were eliminated that way without their merits being weighed. Defence
+  over time is what `edge` measures; whether you can get in at all is what
+  Attack measures, and those are different questions.
 - `differentiated` — close prior art exists and is listed, with a specific,
   checkable difference per item. The normal good outcome.
 - `no-close-prior-art-found` — nothing close found **after searching at least
@@ -52,6 +73,9 @@ Exactly one of (lint enforces the vocabulary and its consistency rules):
 
 For every verdict except `no-close-prior-art-found` and `unverified`,
 `closest_prior_art` must be non-empty — a verdict must point at what it found.
+Give each entry a `state` wherever you can establish one: whether the thing
+is shipping or dead changes the verdict, and a stalled repository with a
+last-commit date is usually easy to check while you are already looking at it.
 Each entry carries a `difference` that is specific and checkable ("does not
 watch provider version metadata"), not comparative fluff ("ours is better /
 more integrated / smarter").

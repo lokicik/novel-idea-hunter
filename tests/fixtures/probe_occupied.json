@@ -1,0 +1,23 @@
+{
+  "id": "PROBE-02",
+  "shape": "clause-level diffing of procurement questionnaires for small B2B vendors",
+  "niche": {
+    "opportunity_pattern": "workaround-productization",
+    "mechanism_class": "translation-bridge",
+    "target_actor": "small B2B vendor founders"
+  },
+  "queries": [
+    "security questionnaire answer library automation",
+    "procurement questionnaire diff tool"
+  ],
+  "status": "occupied",
+  "found": [
+    {
+      "name": "ExampleTrust Questionnaire AI",
+      "url": "https://example.com/qai",
+      "state": "shipping",
+      "note": "Answers questionnaires from a prior-answer library."
+    }
+  ],
+  "note": "Live vendors answer questionnaires; whether any diffs clause-level against prior answers is unclear from a shallow look."
+}

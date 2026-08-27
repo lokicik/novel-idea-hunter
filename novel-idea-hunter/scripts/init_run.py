@@ -21,10 +21,10 @@ import sys
 from pathlib import Path
 
 PHASES = [
-    "brief", "observe", "normalize", "map", "diverge",
+    "brief", "observe", "normalize", "map", "probe", "diverge",
     "slop-gate", "prosecute", "attack", "edge", "portfolio", "report",
 ]
-SUBDIRS = ["observations", "candidates", "graveyard", "portfolio", "notes"]
+SUBDIRS = ["observations", "probes", "candidates", "graveyard", "portfolio", "notes"]
 # Mirrors lint_candidate.PRODUCT_SHAPES — kept as a plain list here (not an
 # import) so this script has no dependency on lint_candidate; a test asserts
 # the two stay in sync.

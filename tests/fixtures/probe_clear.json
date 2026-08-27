@@ -1,0 +1,14 @@
+{
+  "id": "PROBE-01",
+  "shape": "eval-drift monitoring for ML platform teams pinned to provider build identifiers",
+  "niche": {
+    "opportunity_pattern": "capability-threshold-crossing",
+    "mechanism_class": "monitoring-alerting",
+    "target_actor": "ML platform teams at LLM-consuming companies"
+  },
+  "queries": [
+    "eval rerun on provider model version change"
+  ],
+  "status": "clear",
+  "note": "Shallow look found CI eval runners but nothing keyed to provider build identifiers."
+}

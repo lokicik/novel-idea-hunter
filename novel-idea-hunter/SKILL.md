@@ -124,15 +124,44 @@ dates, the workarounds with maintenance costs, the trust bottlenecks with
 their delay costs. This map — not raw observations — is what generation
 recombines over.
 
+## Phase 3.5 — Probe (cheap, before anything is written)
+
+Read `references/occupancy-probe.md`. For each candidate *shape* you intend to
+generate — an actor plus a mechanism sketch in one structural niche — run one
+or two searches and record a probe in `<run>/probes/` per
+`scripts/schemas/probe.schema.json`.
+
+This exists because of a measured failure: across two full runs, 44 of 44
+candidates died, and not one died on mechanism quality. They died on prior art
+or on adoption standing, both of which surface in a couple of queries. Probing
+a shape costs a fraction of writing, prosecuting and attacking a candidate
+built on it.
+
+Statuses license different things and none of them is a kill:
+- `clear` — generate freely; a shallow look proves little.
+- `occupied` — something alive ships this. Still generate if the shape is
+  worth it, but the candidate must carry a `probe_response` naming the
+  specific checkable difference. Occupied space is where most real things get
+  built; what it costs is an explicit difference, written down early.
+- `contested` — attempts exist and some died. The most informative outcome.
+  Generate, and make `probe_response` say what killed the predecessors and
+  what changed since.
+
+Keep it shallow — the four-query cap is deliberate. A probe that grows into a
+full search is prosecution done early on a candidate that does not exist yet,
+and prosecution belongs in Phase 6 with the whole candidate in front of it.
+
 ## Phase 4 — Diverge
 
 Read `references/facets.md` fully. Generate candidates as facet
 recombinations across **≥3 observations from ≥2 lenses** — pain × capability
 × distribution is the workhorse pattern. Every candidate is a JSON file in
 `<run>/candidates/` matching `scripts/schemas/candidate.schema.json`, with
-`product_shape` set to the brief's declared shape, `descriptor` assigned at
-creation time, and `falsification` written at creation time (deciding the
-kill test while you still love the idea is the cheap moment). A mechanism
+`product_shape` set to the brief's declared shape, `probe_id` pointing at the
+Phase 3.5 probe for its shape (plus `probe_response` where that probe came
+back `occupied` or `contested`), `descriptor` assigned at creation time, and
+`falsification` written at creation time (deciding the kill test while you
+still love the idea is the cheap moment). A mechanism
 that keeps wanting to be a different shape than declared is itself a
 finding — record it in the map rather than forcing an ill-fitting wrapper
 onto the candidate.
@@ -156,7 +185,8 @@ Read `references/slop-patterns.md` if you have not already. Then run:
 
 ```bash
 python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json \
-    --observations <run>/observations/ --require-shape <shape>
+    --observations <run>/observations/ --probes <run>/probes/ \
+    --require-shape <shape>
 ```
 
 Fix or kill until every surviving candidate passes with 0 errors (warnings
@@ -205,8 +235,9 @@ prosecution with the new evidence.
 
 Then promote up to `max_survivors` candidates (declared in Phase 0, default
 3) to status `survivor` (re-run lint — survivor status tightens
-requirements: ≥5 kill tests, verdict consistency, crowded needs credible
-edge, upheld re-check). Write `<run>/portfolio/portfolio.json` per
+requirements: ≥5 kill tests, verdict consistency, an upheld re-check, and for
+a `crowded` candidate both `incumbent-weekend-build` and
+`reachable-distribution` passing). Write `<run>/portfolio/portfolio.json` per
 `scripts/schemas/portfolio.schema.json` (including `max_survivors`), then
 audit:
 
@@ -240,6 +271,10 @@ where the run directory is.
   the mechanism template is the standard.
 - **Verdict inflation**: wanting `differentiated` so the run "succeeds".
   A run that returns "this space is crowded and here is the map" succeeded.
+- **Occupancy as a reflex kill**: treating "something like this exists" as
+  the end of the conversation. It is the beginning of one — the question is
+  whether the incumbent can or will serve this wedge, which Attack decides
+  on evidence. A dead predecessor especially is information, not a verdict.
 - **Excitement leak**: report language drifting into pitch language. Re-read
   the language rules in report-format.md before delivering.
 - **Ceiling padding**: raising `max_survivors` and then promoting whatever

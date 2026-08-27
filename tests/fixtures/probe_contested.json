@@ -1,0 +1,29 @@
+{
+  "id": "PROBE-03",
+  "shape": "cross-host behaviour matrix for agent skills, continuously rerun",
+  "niche": {
+    "opportunity_pattern": "failed-idea-revival",
+    "mechanism_class": "verification-layer",
+    "target_actor": "skill authors publishing across hosts"
+  },
+  "queries": [
+    "agent host compatibility matrix",
+    "skill compatibility testing across clients"
+  ],
+  "status": "contested",
+  "found": [
+    {
+      "name": "matrix-attempt-one",
+      "url": "https://example.com/one",
+      "state": "abandoned",
+      "note": "Created and abandoned within hours."
+    },
+    {
+      "name": "matrix-attempt-two",
+      "url": "https://example.com/two",
+      "state": "stalled",
+      "note": "Published the record format, declined to fill it."
+    }
+  ],
+  "note": "Two predecessors reached the artifact and stalled at maintenance; the shape's real cost is upkeep."
+}

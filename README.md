@@ -211,6 +211,43 @@ had asked for options, not one verdict. Two gaps caused this:
    every non-survivor candidate, mandatory precisely when the survivor
    count is thin.
 
+## Iteration 5 (2026-08-27) — probe first, and stop treating occupancy as a kill
+
+Two full deep runs over the same territory produced **44 candidates and 44
+deaths, and not one died on mechanism quality.** They died on prior art or on
+adoption standing. Two changes follow from that, and the second matters more
+than the first.
+
+**1. An occupancy probe before generation (Phase 3.5).** For each candidate
+*shape* — an actor plus a mechanism sketch in one structural niche — one or
+two searches, recorded in `<run>/probes/` per `probe.schema.json`. Candidates
+carry `probe_id`, and lint requires a `probe_response` when the probe came
+back `occupied` or `contested`. Probing a shape costs a fraction of writing,
+prosecuting and attacking a candidate built on it. The four-query cap is
+deliberate: a probe that grows into a full search is prosecution done early
+on a candidate that does not exist yet.
+
+**2. Occupancy is no longer a kill — a calibration bug is fixed.** The old
+rule said a `crowded` candidate survives only with a `credible` proprietary
+edge. But `edge-verification.md` caps public-web research at `none`, so in
+every public run *every* crowded candidate died by arithmetic before anyone
+weighed its merits. That silently eliminated **19 of the 44**. Most worthwhile
+things get built in occupied space; "someone already does something like
+this" is not a verdict. What a crowded candidate now owes is a *reason*
+rather than an *asset*: lint requires `incumbent-weekend-build` and
+`reachable-distribution` to both pass — a named structural cause the incumbent
+will not serve this wedge, and a named path to the buyer. Defence over time is
+what `edge` measures; whether you can get in at all is what Attack measures,
+and conflating them was the bug.
+
+Relatedly, prior art now carries a `state` (`shipping` / `stalled` /
+`abandoned` / `proposed-unadopted`), and a terminal `duplicated` verdict may
+not rest entirely on dead predecessors. Both runs kept calling abandoned
+projects duplicates — one matrix attempt abandoned two hours after creation,
+one conformance suite two days. A predecessor that died makes a space
+contested, not closed, and *what killed it* is usually the most valuable thing
+in the file.
+
 The user's immediate follow-up made the actual want explicit: more
 survivors, and genuinely wild ones — not just a bigger report about the
 same single safe idea. That's a request for more raw material and a wider

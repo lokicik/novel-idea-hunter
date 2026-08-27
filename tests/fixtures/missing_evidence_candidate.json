@@ -4,7 +4,10 @@
   "one_liner": "Diffs enterprise procurement questionnaires against a vendor's previous answers and flags newly added clauses for review.",
   "status": "prosecuted",
   "product_shape": "saas-subscription",
-  "observation_ids": ["OBS-pricing-incentives-01", "OBS-pricing-incentives-02"],
+  "observation_ids": [
+    "OBS-pricing-incentives-01",
+    "OBS-pricing-incentives-02"
+  ],
   "mechanism": {
     "actor": "founders of small B2B vendors answering enterprise security questionnaires",
     "trigger": "a prospect sends a new procurement questionnaire during a sales cycle",
@@ -16,7 +19,9 @@
     "replaces_workaround": "Founders keep a spreadsheet of past answers and search it by hand for each new questionnaire",
     "why_now": {
       "change": "Clause-level document parsing became reliable enough to key obligations without manual templating",
-      "evidence_observation_ids": ["OBS-pricing-incentives-01"]
+      "evidence_observation_ids": [
+        "OBS-pricing-incentives-01"
+      ]
     }
   },
   "descriptor": {
@@ -28,7 +33,10 @@
   },
   "novelty": {
     "verdict": "no-close-prior-art-found",
-    "scope_searched": ["exact-product-shape", "open-source"],
+    "scope_searched": [
+      "exact-product-shape",
+      "open-source"
+    ],
     "closest_prior_art": []
   },
   "kill_tests": [],
@@ -41,5 +49,6 @@
     "cost": "one week of manual effort",
     "timebox": "3 weeks",
     "kill_condition": "Fewer than three vendors accept the free manual service"
-  }
+  },
+  "probe_id": "PROBE-02"
 }

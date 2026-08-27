@@ -8,11 +8,18 @@ assets. Exit code 0 = clean, 1 = errors found, 2 = usage/IO problem.
 
 Usage:
     python3 lint_candidate.py CANDIDATE.json [CANDIDATE2.json ...]
-        [--observations DIR] [--require-shape SHAPE] [--json]
+        [--observations DIR] [--probes DIR] [--require-shape SHAPE] [--json]
 
 --observations points at a directory of observation record JSON files; when
 given, every cited observation ID must resolve to a real file. Without it the
 lint still checks ID format and lens diversity (the lens is embedded in the ID).
+
+--probes points at a directory of occupancy-probe records. With it, every
+candidate's probe_id must resolve, and a candidate whose probe came back
+`occupied` or `contested` must carry a probe_response saying what is different
+or what killed the predecessors. Without it the lint still requires a
+well-formed probe_id, because the probe is meant to happen before the
+candidate exists at all.
 
 --require-shape hard-enforces that every candidate's product_shape matches
 the run's declared shape (e.g. the user asked for "saas-subscription" and
@@ -53,14 +60,19 @@ PRIOR_ART_RELATIONSHIPS = {
     "direct-competitor", "adjacent-product", "incumbent-feature", "open-source",
     "failed-attempt", "academic", "patent",
 }
+PRIOR_ART_STATES = {"shipping", "stalled", "abandoned", "proposed-unadopted"}
 EDGE_STATUSES = {"none", "potential", "credible", "compounding"}
 PRODUCT_SHAPES = {
     "saas-subscription", "usage-based-platform", "marketplace",
     "services-led", "open-source-stewardship", "hardware", "data-api-product",
 }
 
+PROBE_STATUSES = {"clear", "occupied", "contested"}
+PROBE_NEEDS_RESPONSE = {"occupied", "contested"}
+
 OBS_ID_RE = re.compile(r"^OBS-([a-z0-9-]+)-([0-9]{2,})$")
 CAND_ID_RE = re.compile(r"^CAND-[0-9]{2,}$")
+PROBE_ID_RE = re.compile(r"^PROBE-[0-9]{2,}$")
 
 # Generic product shapes. Matching one is not fatal by itself — the words are a
 # symptom, not the disease — but a match plus an incomplete mechanism is fatal.
@@ -125,11 +137,14 @@ def _lens_of(obs_id):
     return m.group(1) if m else None
 
 
-def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None):
+def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, probes_on_disk=None):
     """Return (errors, warnings) lists of strings for one candidate dict.
 
     required_shape, when given, hard-enforces that this candidate's
-    product_shape matches it (the run-level --require-shape constraint)."""
+    product_shape matches it (the run-level --require-shape constraint).
+    probes_on_disk, when given, maps probe id -> probe record so the lint can
+    resolve probe_id and demand a probe_response where the probe found
+    occupancy."""
     errors, warnings = [], []
 
     def need(cond, msg):
@@ -171,6 +186,26 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None):
     if observation_ids_on_disk is not None:
         missing = [o for o in obs_ids if o not in observation_ids_on_disk]
         need(not missing, f"cited observations not found on disk: {missing}")
+
+    # --- occupancy probe ---
+    # 44 of 44 candidates across two full runs died on prior art or standing
+    # rather than on mechanism quality, so the cheap look happens before the
+    # expensive write. See references/occupancy-probe.md.
+    pid = cand.get("probe_id", "")
+    need(PROBE_ID_RE.match(str(pid)), f"probe_id '{pid}' missing or malformed — probe the shape before writing "
+                                      "the candidate; the probe is what makes a dead shape cheap to discover")
+    if probes_on_disk is not None and PROBE_ID_RE.match(str(pid)):
+        probe = probes_on_disk.get(pid)
+        if need(probe is not None, f"probe {pid} not found on disk"):
+            pstatus = (probe or {}).get("status", "")
+            if pstatus not in PROBE_STATUSES:
+                errors.append(f"probe {pid} has status '{pstatus}' not in {sorted(PROBE_STATUSES)}")
+            elif pstatus in PROBE_NEEDS_RESPONSE:
+                need(len(str(cand.get("probe_response", ""))) >= 25,
+                     f"probe {pid} came back '{pstatus}' but the candidate carries no probe_response — "
+                     + ("state the specific difference from what is already shipping"
+                        if pstatus == "occupied" else
+                        "state what killed the earlier attempts and what has changed since"))
 
     # --- mechanism ---
     mech = cand.get("mechanism") or {}
@@ -244,6 +279,20 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None):
         rel = (art or {}).get("relationship", "")
         if rel and rel not in PRIOR_ART_RELATIONSHIPS:
             errors.append(f"novelty.closest_prior_art[{i}].relationship '{rel}' not in controlled vocabulary")
+        st = (art or {}).get("state", "")
+        if st and st not in PRIOR_ART_STATES:
+            errors.append(f"novelty.closest_prior_art[{i}].state '{st}' not in {sorted(PRIOR_ART_STATES)}")
+
+    # A dead competitor is not a fatal competitor. 'duplicated' is terminal, so it
+    # must rest on something still alive; prior art that is entirely abandoned or
+    # merely proposed is evidence about a contested space, not a closed one.
+    if verdict == "duplicated" and prior:
+        states = [(art or {}).get("state") for art in prior]
+        if states and all(s in {"abandoned", "stalled", "proposed-unadopted"} for s in states if s) \
+                and any(s for s in states):
+            errors.append("verdict 'duplicated' but every dated prior-art entry is abandoned, stalled or "
+                          "merely proposed — a dead predecessor makes the space contested, not closed; "
+                          "use 'crowded' or 'differentiated' and record what killed them")
 
     # --- survivor re-check (second narrow prior-art pass) ---
     recheck = nov.get("recheck")
@@ -306,10 +355,25 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None):
         need(len(str(cand.get("graveyard_reason", ""))) >= 10, "status 'killed' requires graveyard_reason")
     if status == "survivor":
         if verdict == "duplicated":
-            errors.append("survivor with verdict 'duplicated' — a duplicate cannot survive")
-        if verdict == "crowded" and rank < 2:
-            errors.append("survivor in a crowded space with edge below 'credible' — "
-                          "crowded is only survivable with a verified edge")
+            errors.append("survivor with verdict 'duplicated' — a live product already serves this actor")
+        if verdict == "crowded":
+            # Being occupied is not by itself disqualifying: most businesses enter
+            # occupied space. What a crowded candidate owes is a reason the incumbent
+            # will not serve this wedge and a path to the buyer — which the attack
+            # phase already measures. Requiring a proprietary edge instead made every
+            # crowded candidate in a public-web run die by arithmetic rather than by
+            # judgement, since edge-verification caps such runs at 'none'.
+            results_by_criterion = {t.get("criterion"): t.get("result")
+                                    for t in kill_tests if isinstance(t, dict)}
+            for criterion in ("incumbent-weekend-build", "reachable-distribution"):
+                res = results_by_criterion.get(criterion)
+                if res is None:
+                    errors.append(f"survivor in a crowded space did not apply '{criterion}' — "
+                                  "entering an occupied space requires naming what stops the incumbent "
+                                  "and how the buyer is reached")
+                elif res != "pass":
+                    errors.append(f"survivor in a crowded space has '{criterion}' = '{res}' — "
+                                  "an occupied space is survivable only when both of these pass")
 
     return errors, warnings
 
@@ -330,16 +394,32 @@ def load_observation_ids(obs_dir):
     return ids
 
 
+def load_probes(probe_dir):
+    """Map probe id -> probe record from a directory of probe JSON files."""
+    probes = {}
+    for p in Path(probe_dir).rglob("*.json"):
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        for rec in (data if isinstance(data, list) else [data]):
+            if isinstance(rec, dict) and "id" in rec:
+                probes[rec["id"]] = rec
+    return probes
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("candidates", nargs="+", help="candidate JSON file(s)")
     ap.add_argument("--observations", help="directory of observation record JSON files")
+    ap.add_argument("--probes", help="directory of occupancy-probe record JSON files")
     ap.add_argument("--require-shape", choices=sorted(PRODUCT_SHAPES),
                      help="fail any candidate whose product_shape isn't this run's declared shape")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)
 
     obs_ids = load_observation_ids(args.observations) if args.observations else None
+    probes = load_probes(args.probes) if args.probes else None
     results, any_errors = [], False
     for path in args.candidates:
         try:
@@ -347,7 +427,7 @@ def main(argv=None):
         except (OSError, json.JSONDecodeError) as exc:
             print(f"error: cannot read {path}: {exc}", file=sys.stderr)
             return 2
-        errors, warnings = lint_candidate(cand, obs_ids, args.require_shape)
+        errors, warnings = lint_candidate(cand, obs_ids, args.require_shape, probes)
         any_errors = any_errors or bool(errors)
         results.append({"file": path, "id": cand.get("id"), "errors": errors, "warnings": warnings})
 

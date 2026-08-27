@@ -26,7 +26,7 @@ import re
 import sys
 from pathlib import Path
 
-from lint_candidate import lint_candidate, load_observation_ids
+from lint_candidate import lint_candidate, load_observation_ids, load_probes
 
 MODES = {"quick", "deep"}
 JACCARD_WARN_THRESHOLD = 0.5
@@ -47,7 +47,8 @@ def _jaccard(a, b):
     return len(a & b) / len(a | b)
 
 
-def audit_portfolio(portfolio, candidates_by_id, observation_ids=None, graveyard_count_on_disk=None):
+def audit_portfolio(portfolio, candidates_by_id, observation_ids=None, graveyard_count_on_disk=None,
+                    probes=None):
     """Return (errors, warnings). candidates_by_id maps CAND id -> candidate dict."""
     errors, warnings = [], []
 
@@ -76,7 +77,7 @@ def audit_portfolio(portfolio, candidates_by_id, observation_ids=None, graveyard
             continue
         if cand.get("status") != "survivor":
             errors.append(f"{cid} is listed as a survivor but its status is '{cand.get('status')}'")
-        cand_errors, _ = lint_candidate(cand, observation_ids)
+        cand_errors, _ = lint_candidate(cand, observation_ids, None, probes)
         for e in cand_errors:
             errors.append(f"{cid}: {e}")
         resolved.append(cand)
@@ -133,9 +134,11 @@ def load_run(run_dir):
             candidates_by_id[cand["id"]] = cand
     obs_dir = run / "observations"
     observation_ids = load_observation_ids(obs_dir) if obs_dir.is_dir() else None
+    probe_dir = run / "probes"
+    probes = load_probes(probe_dir) if probe_dir.is_dir() else None
     graveyard = run / "graveyard"
     graveyard_count = len(list(graveyard.glob("*.json"))) if graveyard.is_dir() else None
-    return portfolio, candidates_by_id, observation_ids, graveyard_count
+    return portfolio, candidates_by_id, observation_ids, graveyard_count, probes
 
 
 def main(argv=None):
@@ -145,12 +148,12 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     try:
-        portfolio, candidates_by_id, observation_ids, graveyard_count = load_run(args.run_dir)
+        portfolio, candidates_by_id, observation_ids, graveyard_count, probes = load_run(args.run_dir)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    errors, warnings = audit_portfolio(portfolio, candidates_by_id, observation_ids, graveyard_count)
+    errors, warnings = audit_portfolio(portfolio, candidates_by_id, observation_ids, graveyard_count, probes)
 
     if args.json:
         print(json.dumps({"errors": errors, "warnings": warnings, "ok": not errors}, indent=2, ensure_ascii=False))
