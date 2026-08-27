@@ -1,0 +1,85 @@
+{
+  "eval": "blind-readjudication-2026-08-28",
+  "question": "Did the pipeline over-kill? It returned 29 kills across two runs, with the same party writing both the candidates and the attack notes.",
+  "method": {
+    "candidates": 29,
+    "runs": [
+      "20260827-171846 (self-directed generation)",
+      "20260827-235914 (provoked generation)"
+    ],
+    "given_to_judges": [
+      "mechanism",
+      "actor",
+      "trigger",
+      "replaces_workaround",
+      "why_now",
+      "closest_prior_art from independent prosecution subagents",
+      "prosecutor_notes"
+    ],
+    "withheld": [
+      "novelty.verdict",
+      "kill_tests",
+      "graveyard_reason",
+      "probe_response",
+      "self_refutation",
+      "provocation",
+      "descriptor",
+      "source run"
+    ],
+    "order": "shuffled, seed 20260828",
+    "judges": 3,
+    "judge_web_search": false
+  },
+  "results": {
+    "agreement_with_pipeline": "28/29 (97%) for each of the three judges",
+    "inter_judge_agreement": "29/29 (100%) on every pairwise comparison",
+    "overturned": {
+      "blind_id": "IDEA-14",
+      "run": "20260827-171846",
+      "candidate": "CAND-02",
+      "name": "Vendor Code Origination Records",
+      "pursued_by": [
+        "J1",
+        "J2",
+        "J3"
+      ],
+      "pipeline_kill_claim": "no buyer varies review depth by disclosed production method",
+      "refutation": "Linux/Fedora contribution policies carry an Assisted-by: trailer, i.e. receivers already mark asserted production method; SLSA leaves the source-provenance predicate undefined, and CRA obligations land 2026-09 / 2027-12 against a funded third-party-supply-chain budget line."
+    },
+    "pursue_votes_by_run": {
+      "self-directed (19 candidates)": 1,
+      "provoked (10 candidates)": 0
+    },
+    "criterion_divergence": {
+      "note": "The judges' decisive criteria differ sharply from the pipeline's.",
+      "distribution-model-fit": {
+        "pipeline": "88% of attacked candidates",
+        "judges": "1% of kills"
+      },
+      "incumbent-weekend-build": {
+        "pipeline": "77%/75%",
+        "judges": "37%"
+      },
+      "workaround-is-good-enough": {
+        "pipeline": "46%/75%",
+        "judges": "25%"
+      }
+    }
+  },
+  "independent_findings_all_three_judges_reached_unprompted": [
+    "The 29 read as one generative template: transplant a mature governance mechanism into an AI-flood intake domain.",
+    "Between a quarter and a third put capital at risk (bond, escrow, surety, insurance) and so violate the saas-subscription brief before any prior art is consulted.",
+    "Many sell to operators who are themselves the incumbent and build in house, capping the buyer count below venture scale."
+  ],
+  "limitations": [
+    "The three judges are the same model in separate contexts, not independent minds. 100% pairwise agreement is more consistent with a shared prior than with genuine convergence, and is far above the inter-rater agreement reported for human feasibility judgments (ICC ~0.45).",
+    "Judges could not search, so they adjudicated on the prosecution's evidence rather than verifying it.",
+    "The evidence base itself was written by subagents of the same model."
+  ],
+  "conclusion": "The pipeline's kill record is not an artifact of self-preference: 28 of 29 kills survive blind re-adjudication. One kill was overturned unanimously and rests on a claim that is factually wrong, not merely harsh. Separately, the provoked run produced no candidate any judge would pursue, so iteration 9's machinery widened the funnel without improving yield.",
+  "judge_notes": {
+    "J1": "Closest calls were IDEA-14, IDEA-13, IDEA-23 and IDEA-24. IDEA-14 is the only pursue: its components ship but the commercial seat (production-method attestation as the predicate, sold into enterprise vendor procurement) is empty, the buyer holds a real and growing supply-chain security budget, and SLSA explicitly leaves the source-provenance slot to be defined, which is the normal shape of a live market rather than a duplicated one; the self-declaration objection is weaker than it looks because the whole SBOM/attestation industry sells contractual accountability, not cryptographic truth. IDEA-13 and IDEA-24 were tempting because the literal shape is unoccupied, but in both the supply or the capability is already free at the exact target (Mozilla AMO and YouTube run deferred review natively; OpenReview publishes labelled rejections continuously), and IDEA-23 is refuted by its own why-now, where the institution chose the free fix of turning screening off. The set reads as one generative template applied 29 times: transplant a mature governance mechanism (postal presort, trusted-trader accreditation, surety bonding, the athlete biological passport, registered reports) into an AI-flood intake domain, and in nearly every case the destination domain already runs that mechanism natively (velocity limits, deferred review queues, DDEX disclosure, FAR two-step bidding) or has rejected it in public. Two structural biases run through the whole batch and are worth flagging to the generator: many candidates sell to operators who are themselves the incumbent and build in house, capping the buyer count far below venture scale; and roughly a quarter are bonds, escrows or insurance products rather than SaaS subscriptions at all, which quietly violates the brief before any prior art is consulted.",
+    "J2": "The set is one generation run: four mechanism templates (a posted bond or stake, threshold-deferred review, a per-actor longitudinal baseline, and binding pre-commitment before the artifact is written) crossed with five domains (hiring, scholarly publishing, marketplaces, code contribution, ad supply). That structure produces its own verdict — wherever the mechanism has real value the gatekeeper already ships it natively and free (eBay selling limits, DDEX disclosure at Spotify, pre-bid MFA segments, FAR 14.5, Rust RFCs), and the squares that are empty are empty for reasons visible in the dossiers: California Labor Code §402 on applicant bonds, Sherman Act exposure on cross-venue coordination, or underwriting costs that exceed any plausible premium. A second pattern worth flagging: at least five candidates (07, 19, 21, 23, 27) are insurance, surety or escrow products wearing a SaaS label, which is a category mismatch with the brief before any prior-art question is asked. Closest calls were IDEA-14, which I pursue because it is the only one where the empty square coincides with a funded enterprise budget line rather than with a legal or economic reason for the emptiness; IDEA-01, where the seat is genuinely open but Maxient's all-inclusive pricing at ~1,400 institutions means the money is already gone; IDEA-24, whose buyer has enormous data budgets but whose supply OpenReview gives away dated and labelled; and IDEA-27, an empty square sitting on the least attractive deal size. I also want to name where I deliberately did not reach for incumbent-weekend-build: IDEA-03, 18 and 24 all have shipping neighbours, but each dies on a falsified premise rather than on incumbency, and IDEA-12 and IDEA-15 die on arithmetic and on a practitioner objection respectively.",
+    "J3": "Closest calls were IDEA-24 and IDEA-14, in opposite directions. IDEA-24 has the best buyer in the set (eval teams with data-licensing budgets, a naturally recurring feed product, and a genuinely unoccupied shape across eight search families), and it only fails because the single largest supply is free, dated and already being mined by the exact customers, while every other gatekeeper has legal and reputational reasons never to relay its submitters' work; IDEA-14 is my only pursue and it is not comfortable — Chainloop ships the substrate open-source, and if essentially all vendor code becomes AI-assisted the production-method predicate goes to 100% and stops carrying information, which is precisely what a month should resolve. IDEA-23 and IDEA-27 also sit on genuinely empty squares but are underwriting businesses rather than SaaS subscriptions, and the brief's venture-ambition frame kills them on capital structure before it kills them on demand. The dominant pattern is that the set is one template — a flood of cheap machine-produced submissions, plus a mechanism transplanted from another domain (postal presort, anti-doping passports, hallmarking, surety bonding, registered reports, trusted-trader accreditation) — and the transfer fails the same three ways over and over: the destination domain already ran the borrowed mechanism natively (eBay selling limits, Steam Direct, FAR 14.5, DDEX AI disclosure), or the buyer set is a dozen platform operators who build it themselves, or the money mechanic is a bond or policy the operator sets rather than software anyone subscribes to. Roughly a third of the set (02, 07, 12, 19, 21, 23, 25, 27) puts capital at risk as its core mechanic, which is structurally the wrong shape for the SaaS-subscription brief regardless of how empty the square looks."
+  }
+}

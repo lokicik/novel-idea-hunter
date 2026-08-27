@@ -451,3 +451,66 @@ novel *and* slightly weaker on feasibility, which a wider funnel amplifies.
 Everything still goes through the slop gate, prosecution and attack unchanged.
 
 Tests 81 -> 93.
+
+## Iteration 10 (2026-08-28) — grading someone else's homework
+
+Two runs had returned 29 candidates and 29 kills, with the same party writing
+both the candidates and the attack notes. The literature says that is the wrong
+shape: feasibility judgments have poor inter-rater agreement (ICC ~0.45 against
+0.82 for originality), and self-preference bias is a known failure of
+model-as-judge. So the kill record was put to a blind test.
+
+**Method.** All 29 candidates were harmonised into uniform dossiers carrying the
+mechanism, actor, trigger, workaround, why-now, and the prior art found by the
+*independent* prosecution subagents. Withheld: every verdict, every kill test,
+the graveyard reasons, `self_refutation`, `probe_response`, `provocation`, and
+which run each came from. Order shuffled on a fixed seed. Three judges, no web
+search, same kill-criteria vocabulary. Record: `evals/blind-readjudication-2026-08-28.json`.
+
+**Result: 28 of 29 kills confirmed, by all three judges independently (97%).**
+The kill record is not an artifact of self-preference.
+
+**One kill was overturned unanimously, and it was wrong on fact rather than
+judgement.** CAND-02's `buyer-has-budget` note claimed no buyer varies review
+depth by disclosed production method. Linux and Fedora contribution policies
+already carry an `Assisted-by:` trailer, so receivers mark asserted production
+method today; SLSA leaves the source-provenance predicate undefined, which is a
+standards slot rather than an incumbent's wedge; and the budget line is
+enterprise third-party supply-chain assurance against CRA obligations landing
+2026-09 and 2027-12. The candidate has been reopened with its kill tests
+corrected in place.
+
+**The provoked run scored zero.** Of 29 candidates, the single one any judge
+would pursue came from the *self-directed* run. Iteration 9's machinery widened
+the funnel measurably (pattern concentration 84% → 30%) and produced nothing a
+blind judge wanted. That is the honest verdict on it so far.
+
+**The judges' decisive criteria diverge sharply from the pipeline's**, which is
+the most useful finding here:
+
+| criterion | pipeline | judges |
+|---|---|---|
+| `distribution-model-fit` | 88% of attacked | **1%** of kills |
+| `incumbent-weekend-build` | 75-77% | 37% |
+| `workaround-is-good-enough` | 46-75% | 25% |
+
+The pipeline's most-fired criterion is almost unused by independent judges.
+`distribution-model-fit` appears to be doing rhetorical rather than decisive work
+in this author's hands — a candidate for the same recalibration iteration 8
+applied to `incumbent-weekend-build`.
+
+**All three judges independently reached three findings nobody asked them for**,
+each of which the pipeline had also reached or should have: the 29 read as one
+generative template (transplant a mature governance mechanism into an AI-flood
+intake domain); between a quarter and a third put capital at risk and so violate
+the `saas-subscription` brief before prior art is consulted; and many sell to
+operators who are themselves the incumbent.
+
+**Limitations, stated because they matter.** The three judges are the same model
+in separate contexts, not independent minds — 100% pairwise agreement on all 29
+verdicts is more consistent with a shared prior than with genuine convergence,
+and it sits far above what human feasibility agreement looks like. The judges
+could not search, so they adjudicated the prosecution's evidence rather than
+verifying it. And that evidence was itself produced by subagents of the same
+model. This is a check against self-preference within one context, not an
+independent audit.
