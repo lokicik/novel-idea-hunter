@@ -67,6 +67,8 @@ PRODUCT_SHAPES = {
     "services-led", "open-source-stewardship", "hardware", "data-api-product",
 }
 
+AMBITIONS = {"lifestyle", "venture"}
+VENTURE_CRITERIA = ("scale-ceiling", "distribution-model-fit")
 PROBE_STATUSES = {"clear", "occupied", "contested"}
 PROBE_NEEDS_RESPONSE = {"occupied", "contested"}
 
@@ -137,7 +139,8 @@ def _lens_of(obs_id):
     return m.group(1) if m else None
 
 
-def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, probes_on_disk=None):
+def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, probes_on_disk=None,
+                   required_ambition=None):
     """Return (errors, warnings) lists of strings for one candidate dict.
 
     required_shape, when given, hard-enforces that this candidate's
@@ -375,6 +378,24 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, prob
                     errors.append(f"survivor in a crowded space has '{criterion}' = '{res}' — "
                                   "an occupied space is survivable only when both of these pass")
 
+        # A venture run additionally asks whether the arithmetic allows the target
+        # at all, and whether the selling motion and the pricing cohere. Both are
+        # judgements a good small business can fail while remaining a good small
+        # business, so they only bind when the brief asked for venture scale.
+        if required_ambition == "venture":
+            results_by_criterion = {t.get("criterion"): t.get("result")
+                                    for t in kill_tests if isinstance(t, dict)}
+            for criterion in VENTURE_CRITERIA:
+                res = results_by_criterion.get(criterion)
+                if res is None:
+                    errors.append(f"venture run: survivor did not apply '{criterion}' — "
+                                  "the brief asked for venture scale, so the ceiling arithmetic and the "
+                                  "motion-pricing fit both have to be on the record")
+                elif res != "pass":
+                    errors.append(f"venture run: survivor has '{criterion}' = '{res}' — "
+                                  "a candidate that cannot clear the target or whose motion and pricing "
+                                  "do not cohere is a fine business but not this run's answer")
+
     return errors, warnings
 
 
@@ -415,6 +436,8 @@ def main(argv=None):
     ap.add_argument("--probes", help="directory of occupancy-probe record JSON files")
     ap.add_argument("--require-shape", choices=sorted(PRODUCT_SHAPES),
                      help="fail any candidate whose product_shape isn't this run's declared shape")
+    ap.add_argument("--require-ambition", choices=sorted(AMBITIONS),
+                     help="venture: survivors must additionally pass scale-ceiling and distribution-model-fit")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)
 
@@ -427,7 +450,8 @@ def main(argv=None):
         except (OSError, json.JSONDecodeError) as exc:
             print(f"error: cannot read {path}: {exc}", file=sys.stderr)
             return 2
-        errors, warnings = lint_candidate(cand, obs_ids, args.require_shape, probes)
+        errors, warnings = lint_candidate(cand, obs_ids, args.require_shape, probes,
+                                          args.require_ambition)
         any_errors = any_errors or bool(errors)
         results.append({"file": path, "id": cand.get("id"), "errors": errors, "warnings": warnings})
 

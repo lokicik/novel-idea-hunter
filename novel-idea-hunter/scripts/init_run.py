@@ -39,7 +39,8 @@ def slugify(text, max_len=40):
     return slug[:max_len].rstrip("-") or "run"
 
 
-def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_survivors=3):
+def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_survivors=3,
+             ambition="lifestyle"):
     now = _dt.datetime.now()
     run_id = f"{now:%Y%m%d-%H%M%S}-{slugify(domain)}"
     run_dir = Path(out_dir) / run_id
@@ -54,13 +55,14 @@ def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_surviv
         "product_shape": product_shape,
         "breadth": breadth,
         "max_survivors": max_survivors,
+        "ambition": ambition,
         "created": now.isoformat(timespec="seconds"),
         "phases": [{"name": p, "status": "pending"} for p in PHASES],
     }
     (run_dir / "run.json").write_text(json.dumps(run_meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (run_dir / "notes" / "PROGRESS.md").write_text(
         f"# Run {run_id}\n\nDomain: {domain}\nMode: {mode}\nProduct shape: {product_shape}\n"
-        f"Breadth: {breadth}\nMax survivors: {max_survivors}\n\n"
+        f"Breadth: {breadth}\nMax survivors: {max_survivors}\nAmbition: {ambition}\n\n"
         + "".join(f"- [ ] {p}\n" for p in PHASES)
         + "\nUpdate run.json phase statuses (pending -> in-progress -> done) as you go.\n",
         encoding="utf-8",
@@ -80,11 +82,14 @@ def main(argv=None):
                           "more tokens/time for a wider, weirder funnel, not a softer bar")
     ap.add_argument("--max-survivors", type=int, choices=[1, 2, 3, 4, 5, 6], default=3,
                      help="portfolio ceiling (default 3); still a ceiling, not a quota to pad toward")
+    ap.add_argument("--ambition", choices=["lifestyle", "venture"], default="lifestyle",
+                     help="venture adds the scale-ceiling and distribution-model-fit kill criteria")
     ap.add_argument("--out", default="idea-runs", help="parent directory for runs (default ./idea-runs)")
     args = ap.parse_args(argv)
     try:
         run_dir = init_run(args.domain, args.mode, args.product_shape, args.out,
-                            breadth=args.breadth, max_survivors=args.max_survivors)
+                            breadth=args.breadth, max_survivors=args.max_survivors,
+                            ambition=args.ambition)
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

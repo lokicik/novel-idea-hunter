@@ -25,6 +25,14 @@ questions never get asked.
 `reachable-distribution`, `workaround-is-good-enough`, plus any others that
 bite.
 
+**Venture profile** — the commercial core plus `scale-ceiling` and
+`distribution-model-fit`. Use it when the brief asks for something that could
+plausibly reach tens of millions in recurring revenue. These two criteria are
+what separate a good small business from a venture-shaped one, and leaving
+them out is why a pipeline can return a perfectly sound idea that could never
+clear ten million however well it is run. They are applied *in addition to*
+the commercial set, never instead of it.
+
 **Stewardship profile** — `product_shape` is `open-source-stewardship`:
 replace `buyer-has-budget` and `unit-economics-smell` with
 `adoption-gatekeeper` and `sustainability-path`. Everything else still
@@ -86,6 +94,28 @@ and high-touch onboarding all fail quietly here. A rough sketch suffices;
 professional advice, or absorb liability the actor currently carries? Name
 the constraint and the compliance cost, or pass explicitly by showing it
 stays outside the regulated boundary.
+
+**`scale-ceiling`** *(venture profile)* — Multiply the plausible number of
+buyers by the plausible annual price and see whether the product of those two
+numbers can clear the target. Do it explicitly, with both numbers written
+down: a candidate serving 400 possible buyers at $2k a year has a ceiling of
+$800k however well it is executed, and no amount of execution fixes an
+arithmetic ceiling. Pass requires either a large enough buyer set, a price
+the buyer would actually pay, or a stated expansion path from the wedge into
+a larger surface — and that path must name what expands, not merely assert
+that it will. Cite the buyer-count estimate's source; a made-up denominator
+makes the whole test theatre.
+
+**`distribution-model-fit`** *(venture profile)* — Does the way this reaches
+buyers match the way it charges them? The classic mismatches: a bottom-up
+developer product with a sales-call-only price; a product whose buyer is a
+committee sold through self-serve signup; a per-seat price on something one
+person runs for a whole team; a usage meter on something used once a quarter.
+Pass requires naming the motion and the pricing and showing they cohere —
+"self-serve signup, per-workspace monthly, expansion by seat as the team
+adopts" coheres; "enterprise compliance buyer, $29/month self-serve" does
+not. This criterion catches the failure where both halves are individually
+sensible and together impossible.
 
 **`adoption-gatekeeper`** *(stewardship profile)* — Who must accept, merge,
 link, or defer to this artifact for it to matter, and what is their concrete

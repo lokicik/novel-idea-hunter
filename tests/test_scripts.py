@@ -114,6 +114,34 @@ class TestLintValidCandidate(unittest.TestCase):
         errors, _ = lint_candidate.lint_candidate(cand)
         self.assertTrue(has_error(errors, "un-overridden kill result"))
 
+    def test_venture_survivor_needs_scale_and_fit(self):
+        errors, _ = lint_candidate.lint_candidate(self.cand, required_ambition="venture")
+        self.assertTrue(has_error(errors, "did not apply 'scale-ceiling'"))
+
+    def test_venture_survivor_passes_with_both(self):
+        cand = copy.deepcopy(self.cand)
+        cand["kill_tests"] += [
+            {"criterion": "scale-ceiling", "result": "pass",
+             "note": "~40k ML platform teams at $6k/yr clears the target with room."},
+            {"criterion": "distribution-model-fit", "result": "pass",
+             "note": "Self-serve signup from the tracker audience, per-workspace monthly, seat expansion."},
+        ]
+        errors, _ = lint_candidate.lint_candidate(cand, required_ambition="venture")
+        self.assertEqual(errors, [])
+
+    def test_venture_survivor_rejected_on_failing_ceiling(self):
+        cand = copy.deepcopy(self.cand)
+        cand["kill_tests"] += [
+            {"criterion": "scale-ceiling", "result": "kill", "note": "400 buyers at $2k caps at $800k."},
+            {"criterion": "distribution-model-fit", "result": "pass", "note": "coherent"},
+        ]
+        errors, _ = lint_candidate.lint_candidate(cand, required_ambition="venture")
+        self.assertTrue(has_error(errors, "scale-ceiling"))
+
+    def test_lifestyle_run_ignores_venture_criteria(self):
+        errors, _ = lint_candidate.lint_candidate(self.cand, required_ambition="lifestyle")
+        self.assertEqual(errors, [])
+
     def test_probe_id_required(self):
         cand = copy.deepcopy(self.cand)
         del cand["probe_id"]

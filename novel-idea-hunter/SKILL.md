@@ -65,6 +65,13 @@ Pin down with the user (ask only what the brief doesn't already answer):
   ask if the user hasn't. Left undeclared, generation follows whatever
   mechanism class the evidence happens to favor, which is how a request for
   startup ideas can come back with a robotics-compliance layer.
+- **Ambition** — `lifestyle` (default) or `venture`. Set `venture` when the
+  brief asks for something that could plausibly reach tens of millions in
+  recurring revenue. It adds two kill criteria that the commercial set does
+  not contain (`scale-ceiling`, `distribution-model-fit`), and lint enforces
+  both on survivors when the run declares it. A good small business fails
+  these while remaining a good small business, which is exactly why they only
+  bind when asked for.
 - **Breadth and survivor ceiling** — default `focused` breadth, up to 3
   survivors. If the user wants more options to choose from, or explicitly
   wants wilder/contrarian territory instead of the single safest move, set
@@ -80,7 +87,7 @@ Then scaffold the run and mark phases as you go (update `run.json`):
 ```bash
 python3 "$SKILL/scripts/init_run.py" --domain "<domain>" --mode <mode> \
     --product-shape <shape> --breadth <focused|wide> \
-    --max-survivors <n> --out ./idea-runs
+    --ambition <lifestyle|venture> --max-survivors <n> --out ./idea-runs
 ```
 
 ## Phase 1 — Observe (ideas forbidden)
@@ -186,7 +193,7 @@ Read `references/slop-patterns.md` if you have not already. Then run:
 ```bash
 python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json \
     --observations <run>/observations/ --probes <run>/probes/ \
-    --require-shape <shape>
+    --require-shape <shape> --require-ambition <ambition>
 ```
 
 Fix or kill until every surviving candidate passes with 0 errors (warnings
@@ -210,7 +217,10 @@ to `prosecuted`, re-run lint (it enforces verdict consistency).
 Read `references/kill-criteria.md`. The goal profile follows directly from
 the declared `product_shape`: `open-source-stewardship` uses the stewardship
 profile, every other shape uses the commercial profile — no guessing what
-the brief implies. Apply ≥5 criteria per candidate, hardest-to-survive
+the brief implies. A run declaring `ambition: venture` applies
+`scale-ceiling` and `distribution-model-fit` on top of its profile; write the
+ceiling arithmetic out with both numbers, since an unwritten denominator is
+how that test becomes theatre. Apply ≥5 criteria per candidate, hardest-to-survive
 first; record every test in `kill_tests` and note which profile was used.
 Kills go to the
 graveyard with reasons; justified overrides get written notes that a skeptic
