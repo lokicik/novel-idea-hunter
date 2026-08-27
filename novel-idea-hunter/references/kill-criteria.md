@@ -148,7 +148,24 @@ that it will. Cite the buyer-count estimate's source; a made-up denominator
 makes the whole test theatre.
 
 **`distribution-model-fit`** *(venture profile)* — Does the way this reaches
-buyers match the way it charges them? The classic mismatches: a bottom-up
+buyers match the way it charges them?
+
+**Calibration warning, measured.** This criterion is the easiest in the set to
+fire and the hardest to be wrong about, which makes it dangerous. Across two
+runs it returned `kill` on 88% of attacked candidates. Put to three independent
+blind judges working from the same evidence, it accounted for **1%** of their
+kills. The gap is not that the judges were lenient — they confirmed 28 of 29
+kills — it is that they killed on *substance* (`incumbent-weekend-build`,
+`workaround-is-good-enough`) where this pipeline reached for *shape*.
+
+A mismatch between motion and pricing is nearly always fixable by changing the
+pricing, so it is rarely the thing that actually decides a candidate. Fire it
+only when the mismatch is **structural and unfixable** — an underwritten
+product that must be broker-placed cannot be a self-serve subscription; a
+multi-party coordination play cannot charge per participant before any
+participant has value. If you could fix it by re-pricing, it is feedback, not a
+kill: record `unclear` with the re-pricing named, and let a substantive
+criterion decide. The classic mismatches: a bottom-up
 developer product with a sales-call-only price; a product whose buyer is a
 committee sold through self-serve signup; a per-seat price on something one
 person runs for a whole team; a usage meter on something used once a quarter.

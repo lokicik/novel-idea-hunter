@@ -78,9 +78,29 @@ Pin down with the user (ask only what the brief doesn't already answer):
   `breadth=wide` and raise `max_survivors` (up to 6) — but say the cost
   tradeoff out loud first (several times more candidates, each getting a
   full prosecution and attack pass) so it's a decision, not a surprise.
-- **Private-edge mode**: only if the user explicitly offers private sources
-  (their repos, notes, past prototypes). Confirm exactly which sources are
-  authorized. Never volunteer to mine private data uninvited.
+- **Private edge — ask, every run.** This is the highest-yield question in
+  Phase 0 and the pipeline has repeatedly failed by skipping it. Two full runs
+  over one territory produced 29 candidates and 28 confirmed kills entirely
+  from public-web evidence, which is the configuration the evidence says works
+  worst: in Shane's study of eight teams commercialising a single widely
+  publicised invention, each discovered only the opportunity matching knowledge
+  they already held, and none had been searching for an opportunity at all.
+  Public evidence is where everyone is already looking. What makes an
+  opportunity visible to one person and invisible to everyone else is
+  idiosyncratic prior knowledge.
+
+  So ask plainly, in the user's own terms: *what do you know that isn't
+  googleable?* Where have they worked, what breaks in their world that
+  outsiders never see, whose problems do they hear about first, what did they
+  build that failed and why. Any of that becomes a `private-edge` lens in
+  Phase 1 with observations recorded like any other.
+
+  The privacy rule is unchanged and absolute: **ask, never assume.** Mine
+  private sources only when the user explicitly offers them, confirm exactly
+  which are authorized, and never volunteer to go looking. If the user has
+  nothing to offer or prefers not to, run public-only and say in the report
+  that the run carried no private edge — that is a stated limitation of the
+  result, not a neutral default.
 
 Then scaffold the run and mark phases as you go (update `run.json`):
 

@@ -514,3 +514,31 @@ could not search, so they adjudicated the prosecution's evidence rather than
 verifying it. And that evidence was itself produced by subagents of the same
 model. This is a check against self-preference within one context, not an
 independent audit.
+
+## Iteration 11 (2026-08-28) — two fixes the blind test paid for
+
+**`distribution-model-fit` is recalibrated.** The blind re-adjudication showed it
+firing on 88% of attacked candidates here against 1% of independent judges'
+kills — the pipeline's most-used criterion is one the judges barely reach for.
+A motion/pricing mismatch is nearly always fixable by re-pricing, so it rarely
+decides anything. It is now reserved for structural, unfixable mismatches
+(broker-placed underwriting cannot be self-serve; multi-party coordination
+cannot charge per participant before any participant has value). Otherwise:
+record `unclear` with the re-pricing named, and let a substantive criterion
+decide. This is the same correction iteration 8 applied to
+`incumbent-weekend-build`, one criterion over — which is exactly what the
+measurement predicted.
+
+**Private edge is now a standing Phase 0 question, not an optional extra.**
+Two runs, 29 candidates, 28 confirmed kills, and every one of them generated
+from public-web evidence alone — the `private-edge` mode has never once been
+exercised. The empirical literature says that is the worst configuration
+available: Shane's study of eight teams commercialising a single widely
+publicised MIT invention found each discovered only the opportunity matching
+knowledge they already held, and that none of them had been searching for an
+opportunity at all. Public evidence is where everyone is already looking; what
+makes an opportunity visible to one person and invisible to everyone else is
+idiosyncratic prior knowledge. Phase 0 now asks for it in plain terms — what do
+you know that isn't googleable — while the privacy rule stays absolute: ask,
+never assume, and never volunteer to go looking. A public-only run is now a
+stated limitation in the report rather than a silent default.
