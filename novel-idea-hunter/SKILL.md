@@ -173,6 +173,23 @@ that keeps wanting to be a different shape than declared is itself a
 finding — record it in the map rather than forcing an ill-fitting wrapper
 onto the candidate.
 
+Two fields fail quietly unless you write them deliberately:
+
+- **`probe_response` is per candidate, not per probe.** Several candidates
+  will share one probe, and occupancy is a question about one actor's
+  market — a response written for one actor does not answer it for another.
+  The lint compares candidates against each other and rejects a byte-identical
+  response across candidates targeting different actors.
+- **`self_refutation` is a re-read, not a citation.** Before writing the
+  candidate, open the observation records it cites and look for the thing that
+  cuts against it: a caveat inside the record, a `why_now` that is really the
+  incumbent already doing this, a workaround the observation says already
+  ships free, a kill condition the cited operator has already published and
+  acted on. Name the observation id and state what you found, or state that
+  you re-read them and found no counter-claim. This is the cheapest kill
+  available anywhere in the pipeline — it costs one read and it happens before
+  prosecution spends a subagent.
+
 Maintain the quality-diversity archive per facets.md: one best candidate per
 structural niche `(opportunity_pattern, mechanism_class, target_actor)`; new
 candidates compete only within their niche; stalls are broken by single-facet
@@ -195,6 +212,10 @@ python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json \
     --observations <run>/observations/ --probes <run>/probes/ \
     --require-shape <shape> --require-ambition <ambition>
 ```
+
+Lint the run's candidates **together in one invocation** (the glob above does
+this): some checks compare candidates against each other and cannot fire on a
+per-file run.
 
 Fix or kill until every surviving candidate passes with 0 errors (warnings
 are judgment calls — resolve or accept them consciously). Killed candidates

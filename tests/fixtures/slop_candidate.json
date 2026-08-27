@@ -3,7 +3,9 @@
   "name": "AI Copilot for Accountants",
   "one_liner": "An AI-powered assistant that helps accountants automate their workflows seamlessly.",
   "status": "survivor",
-  "observation_ids": ["OBS-manual-workflows-01"],
+  "observation_ids": [
+    "OBS-manual-workflows-01"
+  ],
   "mechanism": {
     "actor": "accountants",
     "trigger": "daily work",
@@ -38,5 +40,6 @@
     "test": "",
     "kill_condition": ""
   },
-  "graveyard_reason": ""
+  "graveyard_reason": "",
+  "self_refutation": "Re-read OBS-manual-workflows-01 in full and found no counter-claim to this candidate's mechanism; the record's own caveats narrow the addressable tier without undercutting the trigger."
 }

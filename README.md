@@ -280,3 +280,54 @@ quota of collision-search recombinations (`facets.md`), while
 `--max-survivors` (up to 6) raises how many can be promoted *if* that many
 actually survive prosecution and attack unchanged. See the Usage section
 above for the `wide`-breadth example.
+
+## Iteration 6 (2026-08-27) — venture ambition
+
+`init_run.py --ambition venture` adds two kill criteria to the commercial
+core: `scale-ceiling` (buyers × annual price, both numbers written and the
+denominator sourced) and `distribution-model-fit` (does the way this reaches
+buyers match the way it charges them). Lint enforces both on survivors via
+`--require-ambition venture`.
+
+**Measured on the run that motivated them, and they changed nothing.** Across
+the 13 candidates that reached Attack, the two criteria fired 11 times —
+`distribution-model-fit` was the single most-fired criterion in the run — but
+**zero candidates died on them alone.** Every candidate they killed was
+already dying on a commercial criterion. The case they exist for, a candidate
+that is commercially sound but structurally sub-scale, never arose, because
+this territory killed everything commercially first. Two iterations running,
+an added rule has turned out to be corroborating rather than decisive; that is
+worth stating plainly rather than counting the firings as impact.
+
+## Iteration 7 (2026-08-27) — read the evidence you are citing
+
+A wide venture run on "AI slop as a market" produced 42 observations, 12
+probes, 19 candidates and **19 deaths**. Two defects in the run were caught by
+prosecutors rather than by the pipeline, and both are now mechanical.
+
+**1. `self_refutation` is a required candidate field.** Four of the 19
+candidates were killed by evidence sitting in the observation records they
+*themselves cited* — a caveat inside the cited record (baselines are worthless
+on thin files, and most of the target population had thin files); a `why_now`
+that was the incumbent already shipping the mechanism; a gate already shipping
+free in a tool the run had observed; a kill condition published by the
+operator the candidate cited as its trigger. None needed a search. All needed
+a re-read. Lint now requires a written re-read naming at least one of the
+candidate's own `observation_ids`. This is the cheapest kill in the pipeline:
+it costs one read and fires before prosecution spends a subagent.
+
+**2. Cross-candidate lint: `probe_response` is per candidate, not per probe.**
+The run's generator keyed probe responses by probe id, so candidates sharing a
+probe got byte-identical text. Three carried a response answering the
+occupancy question for a different actor entirely, and the per-file lint
+passed all three because the field was present and long enough. `lint_candidate.py`
+now compares candidates within one invocation and rejects an identical
+`probe_response` across candidates targeting different actors. Applied
+retroactively to the run, it found **two further groups the prosecutors had
+not caught** — five candidates in total, against three found by review.
+
+**Also surfaced, as a process failure rather than a tool gap.** The skill
+requires re-running lint after prosecution; that step was skipped in this run,
+and it hid 26 prior-art `state` values that had drifted off the controlled
+vocabulary in subagent output. Prosecutor prompts now carry the enums, but the
+real fix was already in the workflow and simply not followed.

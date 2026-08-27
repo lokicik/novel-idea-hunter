@@ -116,5 +116,6 @@
     "parent_ids": [],
     "operation": "fresh"
   },
-  "probe_id": "PROBE-01"
+  "probe_id": "PROBE-01",
+  "self_refutation": "Re-read OBS-capability-shifts-01 in full and found no counter-claim to this candidate's mechanism; the record's own caveats narrow the addressable tier without undercutting the trigger."
 }

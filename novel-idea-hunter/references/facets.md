@@ -115,6 +115,44 @@ swap exactly one facet — a different actor with the same pain, a different
 mechanism class for the same bottleneck, a different distribution path. Score
 the mutant against its own niche.
 
+## Self-refutation: read the evidence you are citing
+
+Generation recombines the *map*, and the map is a compression. The compression
+is where refutations go missing: the summary line survives into the candidate
+and the caveat attached to it does not.
+
+In one wide venture run, 4 of 19 candidates were killed by evidence sitting in
+the observation records they themselves cited, in four distinct ways:
+
+- **The caveat inside the cited record.** A candidate built on longitudinal
+  baselines cited the observation establishing that mechanism — whose own text
+  says baselines are worthless on thin files. Most of the candidate's target
+  population had thin files.
+- **A `why_now` that was the incumbent already doing it.** A candidate cited a
+  marketplace refusing submissions in saturated categories as evidence the
+  moment had arrived. That is the incumbent shipping the mechanism.
+- **A workaround the map already recorded as free.** A candidate's gate ships
+  as one rule among 34 in an anti-slop tool the run had itself observed.
+- **A kill condition the cited operator had already published.** A candidate
+  cited a bug-bounty closure as its trigger; the maintainer who closed it had
+  publicly evaluated this exact mechanism, called it hostile, and closed the
+  programme instead.
+
+None of these needed a search to find. All four needed a re-read.
+
+So before writing a candidate, open its cited observation records — the JSON,
+not your memory of the map — and look specifically for the thing that cuts
+against it. Write what you find into `self_refutation`, naming the observation
+id. If the re-read genuinely turns up no counter-claim, say that, naming the
+records you re-read. The lint requires the field and requires it to name an id
+the candidate actually cites.
+
+Two things this is not. It is not prior-art search — that is Phase 6, and it
+costs a subagent. It is not a reason to drop the candidate: a named
+counter-claim you can answer makes a stronger candidate, and answering it in
+`self_refutation` is the point. What it eliminates is the candidate that dies
+in prosecution to a fact you had already collected and filed.
+
 ## Descriptor discipline
 
 Assign `descriptor` fields when the candidate is created, from the controlled

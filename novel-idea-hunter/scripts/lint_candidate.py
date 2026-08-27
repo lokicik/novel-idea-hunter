@@ -125,6 +125,7 @@ INVALID_EDGE_PATTERNS = [
 
 PROSECUTED_STATUSES = {"prosecuted", "attacked", "survivor"}
 SURVIVOR_MIN_KILL_TESTS = 5
+SELF_REFUTATION_MIN_CHARS = 60
 
 
 def _text_fields_for_slop_scan(cand):
@@ -189,6 +190,23 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, prob
     if observation_ids_on_disk is not None:
         missing = [o for o in obs_ids if o not in observation_ids_on_disk]
         need(not missing, f"cited observations not found on disk: {missing}")
+
+    # --- self-refutation ---
+    # In the AI-slop run, 4 of 19 candidates were killed by evidence sitting in
+    # the observations they themselves cited: a caveat inside the cited record,
+    # a why_now that was the incumbent already doing it, a gate already shipping
+    # free in an observed tool, a kill condition the cited operator had already
+    # published. Citing an observation is not the same as re-reading it, so the
+    # re-read is made a written artifact. See references/facets.md.
+    selfref = str(cand.get("self_refutation", ""))
+    if need(len(selfref) >= SELF_REFUTATION_MIN_CHARS,
+            f"self_refutation missing or under {SELF_REFUTATION_MIN_CHARS} chars — re-read the cited "
+            "observations and state what in them cuts against this candidate, or state that you "
+            "re-read them and found no counter-claim. Citing evidence is not reading it"):
+        cited_here = [o for o in obs_ids if str(o) in selfref]
+        need(cited_here,
+             "self_refutation names no observation id from this candidate's own observation_ids — "
+             "it must point at the specific record it re-read, not gesture at the evidence in general")
 
     # --- occupancy probe ---
     # 44 of 44 candidates across two full runs died on prior art or standing
@@ -415,6 +433,43 @@ def load_observation_ids(obs_dir):
     return ids
 
 
+def lint_candidate_set(cands):
+    """Cross-candidate checks that no single candidate file can catch.
+
+    Takes a list of candidate dicts. Returns a dict mapping candidate id ->
+    list of error strings.
+
+    Today this catches one failure with a real track record: a probe_response
+    written once per probe and pasted onto every candidate sharing that probe.
+    In the AI-slop run three candidates carried a response answering the
+    occupancy question for a different actor entirely, and the per-file lint
+    passed all three because the field was present and long enough. Occupancy
+    is a question about a specific actor's market, so one text cannot answer it
+    for two different actors.
+    """
+    errors = {}
+    groups = {}
+    for c in cands:
+        if not isinstance(c, dict):
+            continue
+        pid, resp = c.get("probe_id"), str(c.get("probe_response", ""))
+        if pid and resp:
+            groups.setdefault((pid, resp), []).append(c)
+    for (pid, _resp), members in groups.items():
+        if len(members) < 2:
+            continue
+        actors = {str(((m.get("descriptor") or {}).get("target_actor") or "")) for m in members}
+        if len(actors) < 2:
+            continue  # same actor, same probe: one response legitimately covers both
+        ids = sorted(str(m.get("id")) for m in members)
+        for m in members:
+            errors.setdefault(str(m.get("id")), []).append(
+                f"probe_response is byte-identical across {ids} — all sharing {pid} but targeting "
+                f"{len(actors)} different actors. Occupancy is a question about one actor's market; "
+                "write the response per candidate, not per probe")
+    return errors
+
+
 def load_probes(probe_dir):
     """Map probe id -> probe record from a directory of probe JSON files."""
     probes = {}
@@ -443,7 +498,7 @@ def main(argv=None):
 
     obs_ids = load_observation_ids(args.observations) if args.observations else None
     probes = load_probes(args.probes) if args.probes else None
-    results, any_errors = [], False
+    results, loaded = [], []
     for path in args.candidates:
         try:
             cand = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -452,8 +507,17 @@ def main(argv=None):
             return 2
         errors, warnings = lint_candidate(cand, obs_ids, args.require_shape, probes,
                                           args.require_ambition)
-        any_errors = any_errors or bool(errors)
+        loaded.append(cand)
         results.append({"file": path, "id": cand.get("id"), "errors": errors, "warnings": warnings})
+
+    # Cross-candidate checks run over the whole invocation, so lint the run's
+    # candidates together (the Phase 5 command globs them) rather than one file
+    # at a time — a per-file invocation cannot see these.
+    for cid, errs in lint_candidate_set(loaded).items():
+        for r in results:
+            if str(r["id"]) == cid:
+                r["errors"].extend(errs)
+    any_errors = any(r["errors"] for r in results)
 
     if args.json:
         print(json.dumps({"results": results, "ok": not any_errors}, indent=2, ensure_ascii=False))

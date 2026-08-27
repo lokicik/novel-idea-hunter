@@ -282,6 +282,85 @@ class TestLintMissingEvidence(unittest.TestCase):
         self.assertTrue(has_error(self.errors, "query families"))
 
 
+class TestSelfRefutation(unittest.TestCase):
+    """Iteration-7: 4 of 19 candidates in the AI-slop run were killed by
+    evidence sitting in the observations they themselves cited."""
+
+    def test_missing_self_refutation_fails(self):
+        cand = load_fixture("valid_candidate.json")
+        cand.pop("self_refutation", None)
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "self_refutation missing"))
+
+    def test_too_short_self_refutation_fails(self):
+        cand = load_fixture("valid_candidate.json")
+        cand["self_refutation"] = "Re-read them, all fine."
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "self_refutation missing or under"))
+
+    def test_self_refutation_must_name_a_cited_observation(self):
+        cand = load_fixture("valid_candidate.json")
+        cand["self_refutation"] = (
+            "I re-read the evidence base carefully and considered the counter-arguments "
+            "in general terms, and nothing in it undercuts the mechanism as written here.")
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "names no observation id"))
+
+    def test_self_refutation_naming_a_foreign_observation_fails(self):
+        cand = load_fixture("valid_candidate.json")
+        cand["self_refutation"] = (
+            "Re-read OBS-not-cited-here-99 and found that its caveat about thin files "
+            "materially narrows the population this mechanism can serve at all.")
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "names no observation id"))
+
+    def test_valid_self_refutation_passes(self):
+        cand = load_fixture("valid_candidate.json")
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertFalse(has_error(errors, "self_refutation"))
+
+
+class TestCrossCandidateProbeResponse(unittest.TestCase):
+    """Iteration-7: a probe_response written once per probe and pasted onto
+    every candidate sharing it passed the per-file lint three times."""
+
+    def _pair(self, actor_a, actor_b, resp_a, resp_b):
+        a = load_fixture("valid_candidate.json")
+        b = copy.deepcopy(a)
+        a["id"], b["id"] = "CAND-01", "CAND-02"
+        a["probe_id"] = b["probe_id"] = "PROBE-03"
+        a["probe_response"], b["probe_response"] = resp_a, resp_b
+        a["descriptor"]["target_actor"] = actor_a
+        b["descriptor"]["target_actor"] = actor_b
+        return [a, b]
+
+    def test_identical_response_different_actors_fails(self):
+        shared = "The probe found the shape contested; this candidate answers the dead precedent."
+        errs = lint_candidate.lint_candidate_set(
+            self._pair("marketplace operators", "advertising platforms", shared, shared))
+        self.assertIn("CAND-01", errs)
+        self.assertIn("CAND-02", errs)
+        self.assertTrue(any("byte-identical" in e for e in errs["CAND-01"]))
+
+    def test_identical_response_same_actor_is_allowed(self):
+        shared = "The probe found the shape contested; this candidate answers the dead precedent."
+        errs = lint_candidate.lint_candidate_set(
+            self._pair("marketplace operators", "marketplace operators", shared, shared))
+        self.assertEqual(errs, {})
+
+    def test_distinct_responses_pass(self):
+        errs = lint_candidate.lint_candidate_set(
+            self._pair("marketplace operators", "advertising platforms",
+                       "Listing permits are posted against the seller's own inventory.",
+                       "The publisher is paid back through a per-impression discount."))
+        self.assertEqual(errs, {})
+
+    def test_single_candidate_never_flagged(self):
+        one = load_fixture("valid_candidate.json")
+        one["probe_response"] = "The probe found the shape contested and this is the response."
+        self.assertEqual(lint_candidate.lint_candidate_set([one]), {})
+
+
 class TestForbiddenClaims(unittest.TestCase):
     def test_forbidden_claim_anywhere_fails(self):
         cand = load_fixture("valid_candidate.json")

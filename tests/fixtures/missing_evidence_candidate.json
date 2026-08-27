@@ -50,5 +50,6 @@
     "timebox": "3 weeks",
     "kill_condition": "Fewer than three vendors accept the free manual service"
   },
-  "probe_id": "PROBE-02"
+  "probe_id": "PROBE-02",
+  "self_refutation": "Re-read OBS-pricing-incentives-01 in full and found no counter-claim to this candidate's mechanism; the record's own caveats narrow the addressable tier without undercutting the trigger."
 }
