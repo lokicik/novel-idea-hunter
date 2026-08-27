@@ -115,6 +115,33 @@ swap exactly one facet — a different actor with the same pain, a different
 mechanism class for the same bottleneck, a different distribution path. Score
 the mutant against its own niche.
 
+## Pattern spread: the map will try to narrow you
+
+Phase 3 ends by naming the richest veins, and generation then mines them. That
+is the intended use of the map and it is also how a wide run collapses.
+
+Measured on one wide venture run: 42 observations spread evenly across all
+seven lenses, and then **16 of 19 candidates on a single
+`opportunity_pattern`** — `cross-domain-transfer`, the pattern the map had
+flagged as richest. Only 4 of 12 patterns were used at all;
+`regulatory-wedge`, `trust-gap`, `workaround-productization` and `unbundling`
+were never touched despite being obviously live in that territory.
+
+That concentration was not a stylistic problem, it was causal.
+`cross-domain-transfer` means "take a mechanism proven in another field and
+bring it here" — and a mechanism proven elsewhere is, by construction, a known
+mechanism. Prosecution finds known mechanisms. Roughly five in six candidates
+were structurally pre-disposed to come back `crowded` or `duplicated` before
+anyone assessed their merits.
+
+So spread is a hard floor, not a preference: **wide** needs ≥6 distinct
+patterns with none over 40%; **focused** needs ≥3 with none over 60%. Lint
+enforces it across the whole invocation. When you hit the candidate count but
+miss the spread, do not add more candidates from the vein — go to the patterns
+with zero candidates and ask what the map supports there. A pattern with no
+candidates is usually a pattern nobody looked at, not a pattern with nothing
+in it.
+
 ## Self-refutation: read the evidence you are citing
 
 Generation recombines the *map*, and the map is a compression. The compression

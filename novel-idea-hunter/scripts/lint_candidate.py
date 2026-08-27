@@ -126,6 +126,18 @@ INVALID_EDGE_PATTERNS = [
 PROSECUTED_STATUSES = {"prosecuted", "attacked", "survivor"}
 SURVIVOR_MIN_KILL_TESTS = 5
 SELF_REFUTATION_MIN_CHARS = 60
+KILL_NOTE_MIN_CHARS = 40
+# Pattern-spread floors, applied across a whole invocation (see
+# lint_candidate_set). Measured from a wide run where 16 of 19 candidates shared
+# one opportunity_pattern: cross-domain-transfer, which by construction imports
+# mechanisms already proven elsewhere and so is pre-disposed to prosecute as
+# 'crowded' or 'duplicated'. Breadth in the research is worthless if generation
+# throws it away.
+PATTERN_SPREAD = {           # breadth -> (min distinct patterns, max share of one)
+    "wide": (6, 0.40),
+    "focused": (3, 0.60),
+}
+PATTERN_SPREAD_MIN_CANDIDATES = 8
 
 
 def _text_fields_for_slop_scan(cand):
@@ -343,6 +355,30 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, prob
         elif status == "survivor":
             warnings.append(f"survivor overrode a kill on '{(t or {}).get('criterion', '?')}' — make sure the note holds up")
 
+    # A kill ends a candidate, so it owes a reason someone else can audit.
+    for t in kills:
+        crit = (t or {}).get("criterion", "?")
+        if len(str((t or {}).get("note", "")).strip()) < KILL_NOTE_MIN_CHARS:
+            errors.append(f"kill on '{crit}' carries no substantive note (under {KILL_NOTE_MIN_CHARS} chars) — "
+                          "a criterion slug is not a reason; write what a skeptic would need to check")
+
+    # Backtested recalibration: 'the incumbent could ship this' killed 10 of 13
+    # candidates in one run, but the same reasoning kills companies that in fact
+    # won against an incumbent shipping the capability bundled at zero marginal
+    # price. So a kill here must rest on prior art prosecution actually found
+    # shipping — not on the hypothetical that an incumbent might move.
+    # See references/kill-criteria.md.
+    iwb = [t for t in kills if (t or {}).get("criterion") == "incumbent-weekend-build"]
+    if iwb and verdict:
+        live_same_wedge = [a for a in prior
+                           if (a or {}).get("state") == "shipping"
+                           and (a or {}).get("relationship") in {"direct-competitor", "incumbent-feature"}]
+        need(live_same_wedge,
+             "kill on 'incumbent-weekend-build' but no prior-art entry is both state 'shipping' and "
+             "relationship 'direct-competitor' or 'incumbent-feature' — an incumbent that *could* move is "
+             "the normal condition of a live market, not a kill. Name the shipping product serving this "
+             "wedge, or record the result as 'unclear'")
+
     # --- edge ---
     edge = cand.get("edge") or {}
     estatus = edge.get("status", "")
@@ -433,11 +469,11 @@ def load_observation_ids(obs_dir):
     return ids
 
 
-def lint_candidate_set(cands):
+def lint_candidate_set(cands, breadth=None):
     """Cross-candidate checks that no single candidate file can catch.
 
     Takes a list of candidate dicts. Returns a dict mapping candidate id ->
-    list of error strings.
+    list of error strings; run-level findings are keyed under "*".
 
     Today this catches one failure with a real track record: a probe_response
     written once per probe and pasted onto every candidate sharing that probe.
@@ -467,6 +503,29 @@ def lint_candidate_set(cands):
                 f"probe_response is byte-identical across {ids} — all sharing {pid} but targeting "
                 f"{len(actors)} different actors. Occupancy is a question about one actor's market; "
                 "write the response per candidate, not per probe")
+
+    # --- pattern spread ---
+    spread = PATTERN_SPREAD.get(breadth or "")
+    live = [c for c in cands if isinstance(c, dict) and c.get("status") != "killed"]
+    if spread and len(live) >= PATTERN_SPREAD_MIN_CANDIDATES:
+        min_distinct, max_share = spread
+        pats = [str(((c.get("descriptor") or {}).get("opportunity_pattern") or "")) for c in live]
+        counts = {}
+        for p in pats:
+            counts[p] = counts.get(p, 0) + 1
+        if len(counts) < min_distinct:
+            errors.setdefault("*", []).append(
+                f"{breadth} breadth used only {len(counts)} distinct opportunity_pattern(s) across "
+                f"{len(live)} candidates; at least {min_distinct} required. Unused: "
+                f"{sorted(OPPORTUNITY_PATTERNS - set(counts))}. Breadth is a property of the funnel, "
+                "not of the research that fed it")
+        top, n = max(counts.items(), key=lambda kv: kv[1])
+        if n / len(live) > max_share:
+            errors.setdefault("*", []).append(
+                f"opportunity_pattern '{top}' covers {n}/{len(live)} candidates "
+                f"({n / len(live):.0%}), over the {max_share:.0%} ceiling for {breadth} breadth — "
+                "this is premature convergence at the pattern level; generate the next candidates "
+                "from patterns the map has not been mined for")
     return errors
 
 
@@ -493,6 +552,8 @@ def main(argv=None):
                      help="fail any candidate whose product_shape isn't this run's declared shape")
     ap.add_argument("--require-ambition", choices=sorted(AMBITIONS),
                      help="venture: survivors must additionally pass scale-ceiling and distribution-model-fit")
+    ap.add_argument("--breadth", choices=sorted(PATTERN_SPREAD),
+                     help="enforce the opportunity_pattern spread floors for this run's declared breadth")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args(argv)
 
@@ -513,15 +574,22 @@ def main(argv=None):
     # Cross-candidate checks run over the whole invocation, so lint the run's
     # candidates together (the Phase 5 command globs them) rather than one file
     # at a time — a per-file invocation cannot see these.
-    for cid, errs in lint_candidate_set(loaded).items():
+    run_level = []
+    for cid, errs in lint_candidate_set(loaded, args.breadth).items():
+        if cid == "*":
+            run_level.extend(errs)
+            continue
         for r in results:
             if str(r["id"]) == cid:
                 r["errors"].extend(errs)
-    any_errors = any(r["errors"] for r in results)
+    any_errors = bool(run_level) or any(r["errors"] for r in results)
 
     if args.json:
-        print(json.dumps({"results": results, "ok": not any_errors}, indent=2, ensure_ascii=False))
+        print(json.dumps({"results": results, "run_errors": run_level, "ok": not any_errors},
+                         indent=2, ensure_ascii=False))
     else:
+        for e in run_level:
+            print(f"[FAIL] run-level: {e}")
         for r in results:
             verdict = "FAIL" if r["errors"] else "PASS"
             print(f"[{verdict}] {r['file']} ({r['id'] or 'no id'}): {len(r['errors'])} error(s), {len(r['warnings'])} warning(s)")

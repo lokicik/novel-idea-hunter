@@ -361,6 +361,93 @@ class TestCrossCandidateProbeResponse(unittest.TestCase):
         self.assertEqual(lint_candidate.lint_candidate_set([one]), {})
 
 
+class TestPatternSpread(unittest.TestCase):
+    """Iteration-8: a wide run put 16 of 19 candidates on one
+    opportunity_pattern while the observations were evenly spread."""
+
+    def _set(self, patterns):
+        out = []
+        for i, p in enumerate(patterns):
+            c = load_fixture("valid_candidate.json")
+            c["id"] = f"CAND-{i + 1:02d}"
+            c["descriptor"]["opportunity_pattern"] = p
+            c.pop("probe_response", None)
+            out.append(c)
+        return out
+
+    def test_wide_run_dominated_by_one_pattern_fails(self):
+        pats = ["cross-domain-transfer"] * 16 + ["unbundling", "trust-gap", "rebundling"]
+        errs = lint_candidate.lint_candidate_set(self._set(pats), breadth="wide")
+        self.assertIn("*", errs)
+        self.assertTrue(any("premature convergence" in e for e in errs["*"]))
+
+    def test_wide_run_with_too_few_patterns_fails(self):
+        pats = (["cross-domain-transfer"] * 4 + ["unbundling"] * 4 +
+                ["trust-gap"] * 4 + ["rebundling"] * 4)
+        errs = lint_candidate.lint_candidate_set(self._set(pats), breadth="wide")
+        self.assertIn("*", errs)
+        self.assertTrue(any("distinct opportunity_pattern" in e for e in errs["*"]))
+
+    def test_well_spread_wide_run_passes(self):
+        pats = ["cross-domain-transfer", "unbundling", "trust-gap", "rebundling",
+                "regulatory-wedge", "workaround-productization", "data-exhaust-capture",
+                "workflow-collapse", "incumbent-incentive-gap"]
+        errs = lint_candidate.lint_candidate_set(self._set(pats), breadth="wide")
+        self.assertNotIn("*", errs)
+
+    def test_focused_run_tolerates_more_concentration(self):
+        pats = ["cross-domain-transfer"] * 5 + ["unbundling"] * 3 + ["trust-gap"]
+        self.assertNotIn("*", lint_candidate.lint_candidate_set(self._set(pats), breadth="focused"))
+        self.assertIn("*", lint_candidate.lint_candidate_set(self._set(pats), breadth="wide"))
+
+    def test_no_breadth_declared_skips_the_check(self):
+        pats = ["cross-domain-transfer"] * 16
+        self.assertEqual(lint_candidate.lint_candidate_set(self._set(pats)), {})
+
+    def test_small_run_is_not_penalised(self):
+        pats = ["cross-domain-transfer"] * 5
+        self.assertEqual(lint_candidate.lint_candidate_set(self._set(pats), breadth="wide"), {})
+
+    def test_killed_candidates_do_not_count_toward_spread(self):
+        cands = self._set(["cross-domain-transfer"] * 16 + ["unbundling"] * 3)
+        for c in cands[:14]:
+            c["status"] = "killed"
+        # 5 live: 2 cross-domain-transfer + 3 unbundling, under the floor of 8
+        self.assertEqual(lint_candidate.lint_candidate_set(cands, breadth="wide"), {})
+
+
+class TestIncumbentWeekendBuildEvidence(unittest.TestCase):
+    """Iteration-8: back-testing showed this criterion kills companies that
+    in fact won against an incumbent shipping the capability bundled free."""
+
+    def _attacked(self, art_state, art_rel):
+        c = load_fixture("valid_candidate.json")
+        c["status"] = "attacked"
+        c["novelty"]["verdict"] = "crowded"
+        c["novelty"]["closest_prior_art"] = [{
+            "name": "Incumbent Suite", "url": "https://example.com/suite",
+            "relationship": art_rel, "state": art_state,
+            "difference": "bundles an adjacent capability at zero incremental price"}]
+        c["kill_tests"] = [{
+            "criterion": "incumbent-weekend-build", "result": "kill",
+            "note": "The incumbent could plausibly ship this as a feature given its distribution."}]
+        return c
+
+    def test_kill_without_shipping_same_wedge_prior_art_fails(self):
+        errors, _ = lint_candidate.lint_candidate(self._attacked("stalled", "adjacent-product"))
+        self.assertTrue(has_error(errors, "incumbent that *could* move"))
+
+    def test_kill_with_shipping_incumbent_feature_passes(self):
+        errors, _ = lint_candidate.lint_candidate(self._attacked("shipping", "incumbent-feature"))
+        self.assertFalse(has_error(errors, "incumbent that *could* move"))
+
+    def test_kill_needs_a_substantive_note(self):
+        cand = self._attacked("shipping", "direct-competitor")
+        cand["kill_tests"][0]["note"] = "too crowded"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "no substantive note"))
+
+
 class TestForbiddenClaims(unittest.TestCase):
     def test_forbidden_claim_anywhere_fails(self):
         cand = load_fixture("valid_candidate.json")

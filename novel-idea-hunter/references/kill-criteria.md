@@ -45,12 +45,40 @@ being quietly skipped.
 
 ## The criteria
 
-**`incumbent-weekend-build`** — Could an incumbent with existing distribution
-ship this as a feature in two weeks? If the mechanism is a thin wrapper over a
-capability the incumbent already licenses, they will. Pass requires naming
-what structurally stops them: data they lack, a pricing conflict
-(see `pricing-incentives` lens), a channel conflict, an ops chore they won't
-absorb.
+**`incumbent-weekend-build`** — Is an incumbent with existing distribution
+already serving *this wedge* to *this buyer*?
+
+Read that carefully, because the intuitive version of this question is
+miscalibrated and it is the most over-fired criterion in this pipeline. In one
+run it returned `kill` for 10 of 13 candidates. Back-tested against companies
+that actually won, the same reasoning kills them:
+
+- Abnormal Security sells email security at a premium per-seat price while
+  Microsoft bundles Defender for Office 365 P2 into E5 at effectively zero
+  incremental cost, with 30-40% feature overlap. The incumbent did not merely
+  *could* ship it — it shipped it and gave it away.
+- Wiz reached $100M ARR in 18 months, the fastest ever at the time, selling
+  cloud security posture management while every major cloud provider shipped
+  native security tooling.
+
+"An incumbent could do this" is the normal condition of every live market, not
+a kill. Specialists routinely beat a bundled default on depth and focus.
+
+So there are **two doors to a pass**, and either one is enough:
+
+1. **Structural**: name what stops them — data they lack, a pricing conflict
+   (see the `pricing-incentives` lens), a channel conflict, an ops chore they
+   will not absorb.
+2. **Competitive**: name why buyers choose the specialist even though the
+   incumbent ships something adjacent — the depth the bundled version does not
+   reach, the workflow it does not enter, the buyer who is not the incumbent's
+   buyer. This door is legitimate and it is how most winners actually win.
+
+`kill` is reserved for the incumbent shipping the same wedge to the same buyer
+with no specialist-wins answer. The lint enforces the evidence half: a `kill`
+here requires a `closest_prior_art` entry that is both `state: shipping` and
+`relationship: direct-competitor` or `incumbent-feature`. If prosecution did
+not find that product, the honest result is `unclear`, not `kill`.
 
 **`buyer-has-budget`** — Is there a named buyer with an existing budget line
 this replaces or plausibly extends? "They should want this" is not a budget.
@@ -94,6 +122,19 @@ and high-touch onboarding all fail quietly here. A rough sketch suffices;
 professional advice, or absorb liability the actor currently carries? Name
 the constraint and the compliance cost, or pass explicitly by showing it
 stays outside the regulated boundary.
+
+This criterion is about **law**, not about the run's declared `product_shape`.
+Do not use it to kill a candidate for wanting to be an insurance product, a
+warranty, or a contract term when the brief asked for SaaS — that is shape
+drift, and shape drift is a *finding to report*, not a verdict on the
+mechanism. In one run three of the most substantive candidates were killed
+under this slug for being underwriting rather than subscription, which said
+nothing about whether the underlying opportunity was real. When several
+mechanisms in a territory keep wanting the same non-declared shape, that is
+the run's most useful output: record it in the map, report it in the shape
+drift section (report-format.md), and offer the user a re-run under that
+shape. Kill on this criterion only when a statute or regulator makes the
+mechanism unlawful or uneconomic *as such*.
 
 **`scale-ceiling`** *(venture profile)* — Multiply the plausible number of
 buyers by the plausible annual price and see whether the product of those two

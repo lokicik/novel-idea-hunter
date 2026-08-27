@@ -32,6 +32,14 @@ not an afterthought below it. Order closest-to-survival first
 "What would revive it" is a checkable re-run trigger — an incumbent stalls,
 a patent expires, a regulation lands — never a vague "worth watching."
 
+## Shape drift
+Required whenever two or more candidates' mechanisms wanted a `product_shape`
+other than the one declared in Phase 0. Name the shape they kept reaching for,
+list the candidates, and say plainly that they were constrained rather than
+refuted. A territory whose best mechanisms are insurance instruments while the
+brief asked for SaaS has told the user something worth more than a survivor.
+Omit the section only when there was no drift.
+
 ## What would change these conclusions
 3-5 bullets: the observations that, if wrong, unwind the most.
 

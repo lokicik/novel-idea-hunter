@@ -203,6 +203,16 @@ Generation targets depend on breadth, not just mode:
   (facets.md move 6) — the point of wide breadth is territory a focused run
   would never generate, not more of the same shape.
 
+**Spread across `opportunity_pattern`, not just across niches.** Wide breadth
+requires ≥6 distinct patterns with no single pattern over 40% of candidates;
+focused requires ≥3 with none over 60%. Lint enforces this when `--breadth` is
+passed. The map will point at a richest vein and generation will want to mine
+only that — in one run this produced 16 of 19 candidates on
+`cross-domain-transfer`, a pattern that by construction imports mechanisms
+already proven elsewhere and therefore prosecutes as `crowded` or
+`duplicated`. When the count is met but the spread is not, the next candidates
+come from the untouched patterns, not from the vein.
+
 ## Phase 5 — Slop gate
 
 Read `references/slop-patterns.md` if you have not already. Then run:
@@ -210,7 +220,8 @@ Read `references/slop-patterns.md` if you have not already. Then run:
 ```bash
 python3 "$SKILL/scripts/lint_candidate.py" <run>/candidates/*.json \
     --observations <run>/observations/ --probes <run>/probes/ \
-    --require-shape <shape> --require-ambition <ambition>
+    --require-shape <shape> --require-ambition <ambition> \
+    --breadth <focused|wide>
 ```
 
 Lint the run's candidates **together in one invocation** (the glob above does

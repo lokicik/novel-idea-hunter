@@ -331,3 +331,64 @@ requires re-running lint after prosecution; that step was skipped in this run,
 and it hid 26 prior-art `state` values that had drifted off the controlled
 vocabulary in subagent output. Prosecutor prompts now carry the enums, but the
 real fix was already in the workflow and simply not followed.
+
+## Iteration 8 (2026-08-27) — the filter was harsh in one place, but generation was the problem
+
+Prompted by a direct question: is the filter too strict, is there really no
+usable idea, is the brainstorming too narrow? Three measurements, and the
+answers were not the expected ones.
+
+**The filter is miscalibrated, and a back-test proves it.**
+`incumbent-weekend-build` said: could an incumbent with distribution ship this
+in two weeks? If so, they will. It returned `kill` for 10 of 13 attacked
+candidates. Applied to companies that actually won, the same reasoning kills
+them. [Abnormal Security](https://underdefense.com/blog/abnormal-security-pricing-guide/)
+sells email security at a premium per-seat price while Microsoft bundles
+Defender for Office 365 P2 into E5 at effectively zero incremental cost with
+30-40% feature overlap — the incumbent did not merely *could* ship it, it
+shipped it and gave it away. [Wiz](https://www.wiz.io/blog/100m-arr-in-18-months-wiz-becomes-the-fastest-growing-software-company-ever)
+reached $100M ARR in 18 months selling cloud security posture management while
+every major cloud provider shipped native tooling. This is the same
+calibration bug already fixed for the `crowded` novelty verdict in iteration 5
+— fixed there, and missed here. The criterion now has two doors to a pass
+(structural barrier, *or* a named reason buyers choose the specialist), and
+lint requires a `kill` to rest on prior art that is actually `shipping` and
+either `direct-competitor` or `incumbent-feature`. Measured on the run: 9 of
+10 kills were already evidence-backed, so the evidence half was sound and the
+judgment half was not — which is exactly the half a linter cannot fix.
+
+**But the filter is not what produced zero survivors.** Removing
+`incumbent-weekend-build` entirely, removing `distribution-model-fit`, and
+forgiving the three shape-not-law kills: **still zero.** Every candidate
+carries an independent kill on `why-now-really`, `workaround-is-good-enough`,
+`buyer-has-budget` or `unit-economics-smell`. The zero is robust to the
+filter's known miscalibration, which moves the diagnosis upstream.
+
+**Generation collapsed while research did not.** Observations were healthy —
+42 across 7 lenses, exactly 6 per lens. Then **16 of 19 candidates landed on a
+single `opportunity_pattern`**, `cross-domain-transfer`, with only 4 of 12
+patterns used at all. That concentration was causal, not cosmetic: importing a
+mechanism proven in another field means importing a *known* mechanism, so
+roughly five in six candidates were pre-disposed to prosecute as `crowded` or
+`duplicated` before their merits were assessed. The map named a richest vein
+and generation mined only it — the "premature convergence" failure the skill
+already warns about, one level up from where it was being watched.
+`lint_candidate.py --breadth` now enforces pattern spread across the whole
+invocation: wide needs ≥6 distinct patterns with none over 40%, focused ≥3
+with none over 60%. Run against the historical candidates it fires on both
+counts and would have blocked the slop gate.
+
+**Shape drift is no longer a kill.** Three of the run's more substantive
+candidates died under `regulatory-liability` for being insurance instruments
+when the brief declared `saas-subscription`. That is a finding about the
+territory, not a verdict on the mechanism. `regulatory-liability` is now
+reserved for law, report-format.md gains a required **Shape drift** section,
+and the user gets offered a re-run under the shape the mechanisms kept
+reaching for.
+
+One hypothesis tested and rejected, recorded so it is not re-proposed: that
+venture ambition pushed toward large actors and large actors build in-house.
+`incumbent-weekend-build` killed large and niche actors at the same rate
+(5 and 5).
+
+Tests 71 -> 81.
