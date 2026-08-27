@@ -227,18 +227,40 @@ prosecuting and attacking a candidate built on it. The four-query cap is
 deliberate: a probe that grows into a full search is prosecution done early
 on a candidate that does not exist yet.
 
-**2. Occupancy is no longer a kill — a calibration bug is fixed.** The old
-rule said a `crowded` candidate survives only with a `credible` proprietary
-edge. But `edge-verification.md` caps public-web research at `none`, so in
-every public run *every* crowded candidate died by arithmetic before anyone
-weighed its merits. That silently eliminated **19 of the 44**. Most worthwhile
-things get built in occupied space; "someone already does something like
-this" is not a verdict. What a crowded candidate now owes is a *reason*
-rather than an *asset*: lint requires `incumbent-weekend-build` and
-`reachable-distribution` to both pass — a named structural cause the incumbent
-will not serve this wedge, and a named path to the buyer. Defence over time is
-what `edge` measures; whether you can get in at all is what Attack measures,
-and conflating them was the bug.
+**2. Occupancy is no longer a kill — a latent calibration bug is fixed.** The
+old rule said a `crowded` candidate survives only with a `credible`
+proprietary edge. But `edge-verification.md` caps public-web research at
+`none`, so in a public run that rule could fire on *every* crowded candidate
+without anyone weighing its merits. Most worthwhile things get built in
+occupied space; "someone already does something like this" is not a verdict.
+What a crowded candidate now owes is a *reason* rather than an *asset*: lint
+requires `incumbent-weekend-build` and `reachable-distribution` to both pass —
+a named structural cause the incumbent will not serve this wedge, and a named
+path to the buyer. Defence over time is what `edge` measures; whether you can
+get in at all is what Attack measures, and conflating them was the bug.
+
+**Measured afterwards, and it changed nothing retrospectively.**
+Re-adjudicating all 19 crowded candidates from the two runs under the new
+rule: **19 still die.** Not because of arithmetic — 18 of the 19 carry
+`incumbent-weekend-build = kill` with evidence-grounded notes naming specific
+shipping incumbents ("LangGraph already ships node-level caching inside the
+framework"; "the incumbent publishes the destination, names the free tool, and
+gives the steps five months ahead"). The old edge rule was **redundant with a
+genuine kill in 18 of 19 cases, not decisive.** An earlier draft of this
+section claimed the rule "silently eliminated 19 of the 44"; the measurement
+refuted that, and the claim is corrected here rather than quietly dropped.
+The fix is still right — a rule that *can* fire without judgment should not
+exist — but it was not what produced the zero-survivor results. Those
+candidates were genuinely in occupied space. That makes the probe, not the
+recalibration, the load-bearing half of this iteration: it does not change
+which candidates die, it makes them die cheaply.
+
+One latent issue the measurement surfaced: `reachable-distribution` was left
+`unclear` or unrecorded in 17 of 19, because under the old regime it never
+mattered once a candidate was crowded. Under the new rule an unresolved
+criterion fails, which is the correct default — you should not promote a
+survivor when you cannot name a path to its buyer — but a run must now
+actually resolve it rather than leave it hanging.
 
 Relatedly, prior art now carries a `state` (`shipping` / `stalled` /
 `abandoned` / `proposed-unadopted`), and a terminal `duplicated` verdict may
