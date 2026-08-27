@@ -138,6 +138,11 @@ PATTERN_SPREAD = {           # breadth -> (min distinct patterns, max share of o
     "focused": (3, 0.60),
 }
 PATTERN_SPREAD_MIN_CANDIDATES = 8
+# Wide breadth requires a forced brief per candidate: asking a model for
+# crazier ideas does not work, because mode collapse is a property of
+# alignment rather than of effort, and idea diversity saturates as generation
+# scales. See references/provocations.md and scripts/provoke.py.
+BREADTH_REQUIRING_PROVOCATION = {"wide"}
 
 
 def _text_fields_for_slop_scan(cand):
@@ -503,6 +508,34 @@ def lint_candidate_set(cands, breadth=None):
                 f"probe_response is byte-identical across {ids} — all sharing {pid} but targeting "
                 f"{len(actors)} different actors. Occupancy is a question about one actor's market; "
                 "write the response per candidate, not per probe")
+
+    # --- forced briefs (wide breadth only) ---
+    if breadth in BREADTH_REQUIRING_PROVOCATION:
+        try:
+            from provoke import TRIZ as _TRIZ
+            known_principles = {name for name, _ in _TRIZ}
+        except ImportError:                     # provoke.py not importable; skip the name check
+            known_principles = None
+        for c in cands:
+            if not isinstance(c, dict) or c.get("status") == "killed":
+                continue
+            prov = c.get("provocation")
+            cid = str(c.get("id"))
+            if not isinstance(prov, dict) or not prov:
+                errors.setdefault(cid, []).append(
+                    "wide breadth but no provocation recorded — generate against a forced brief from "
+                    "scripts/provoke.py and record which slot it was. Self-directed creativity "
+                    "reproduces the prior it is trying to escape")
+                continue
+            principle = prov.get("triz_principle")
+            if known_principles is not None and principle and principle not in known_principles:
+                errors.setdefault(cid, []).append(
+                    f"provocation.triz_principle '{principle}' is not one of the 40 principles in "
+                    "provoke.py — use the slot as drawn rather than an improvised substitute")
+            prob = prov.get("sampled_probability")
+            if prob is not None and not (0 <= prob <= 1):
+                errors.setdefault(cid, []).append(
+                    f"provocation.sampled_probability {prob} is outside [0, 1]")
 
     # --- pattern spread ---
     spread = PATTERN_SPREAD.get(breadth or "")

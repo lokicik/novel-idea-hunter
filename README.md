@@ -392,3 +392,62 @@ venture ambition pushed toward large actors and large actors build in-house.
 (5 and 5).
 
 Tests 71 -> 81.
+
+## Iteration 9 (2026-08-27) — reaching past the model's prior
+
+Iteration 8 stopped the funnel collapsing onto one pattern. It did not make
+generation reach anywhere new. Asking for that directly does not work, and the
+reason is documented rather than a matter of taste.
+
+**Mode collapse is a property of alignment, not of effort.** Preference data
+carries a typicality bias — annotators favour familiar text — so the aligned
+model concentrates on typical answers. The remedy that works is structural:
+prompting for a *distribution over answers with probabilities* instead of an
+answer recovers 1.6-2.1x diversity in creative writing and 2-3x more broadly,
+at equal quality, training-free, with more capable models benefiting more
+([Verbalized Sampling, arXiv 2510.01171](https://arxiv.org/abs/2510.01171)).
+
+**Diversity saturates as generation scales.** With 100+ NLP researchers
+judging, LLM ideas were rated *more* novel than expert human ideas but
+repetitive in bulk; the authors name diversity under inference-time scaling as
+an open problem ([Si, Yang & Hashimoto, arXiv 2409.04109](https://arxiv.org/abs/2409.04109)).
+Generating 40 candidates instead of 20 buys repetition, which is exactly what
+this pipeline's own run showed at 19.
+
+So the provocation now comes from **outside the model**:
+
+**`scripts/provoke.py`** draws generation briefs deterministically from the run
+id. Each slot fixes an `opportunity_pattern` the run has not mined, one of
+Altshuller's 40 TRIZ inventive principles to force onto the cluster's named
+tension, and an inversion directive. Reproducible, and not chosen by taste.
+TRIZ is used because it is distilled from patent analysis rather than business
+writing, so it sits outside the prior a model brings to "startup idea" — the
+reason TRIZ-structured prompting produces better-justified directions than
+open-ended generation ([AutoTRIZ, arXiv 2403.13002](https://arxiv.org/html/2403.13002v2)).
+The physically literal principles (thermal expansion, porous materials) are
+kept deliberately: forcing them onto a market mechanism is the move a model
+will not make unprompted.
+
+**Verbalized sampling in Phase 4.** Ask for five candidates for a niche with
+the probability the generator would have produced each, build out the low tail,
+and record the number in `provocation.sampled_probability`. The typical answer
+is not wrong — it is already known, which in this pipeline means it prosecutes
+as `crowded`.
+
+**Gap-directed retrieval** is documented as the third move: after the first
+wave, search what the current *set* lacks rather than the domain, which
+produced 2.5x more top-rated ideas in
+[Nova, arXiv 2410.14255](https://arxiv.org/abs/2410.14255).
+
+Lint requires a recorded `provocation` on every live candidate at `wide`
+breadth, rejects an improvised TRIZ principle that is not one of the 40, and
+range-checks the sampled probability. `references/provocations.md` carries the
+grounding and the discipline that matters most: **a forced brief that produces
+nothing is a recorded result** — quietly swapping a hard slot for a
+comfortable one is how the funnel collapsed in the first place.
+
+One thing this explicitly does not buy: the same study found LLM ideas more
+novel *and* slightly weaker on feasibility, which a wider funnel amplifies.
+Everything still goes through the slop gate, prosecution and attack unchanged.
+
+Tests 81 -> 93.

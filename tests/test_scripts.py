@@ -18,6 +18,7 @@ sys.path.insert(0, str(SCRIPTS))
 import check_portfolio  # noqa: E402
 import init_run  # noqa: E402
 import lint_candidate  # noqa: E402
+import provoke  # noqa: E402
 
 
 def load_fixture(name):
@@ -372,6 +373,9 @@ class TestPatternSpread(unittest.TestCase):
             c["id"] = f"CAND-{i + 1:02d}"
             c["descriptor"]["opportunity_pattern"] = p
             c.pop("probe_response", None)
+            c["provocation"] = {"slot": i + 1, "opportunity_pattern": p,
+                                "triz_principle": "Feedback",
+                                "inversion": "Invert who pays."}
             out.append(c)
         return out
 
@@ -414,6 +418,75 @@ class TestPatternSpread(unittest.TestCase):
             c["status"] = "killed"
         # 5 live: 2 cross-domain-transfer + 3 unbundling, under the floor of 8
         self.assertEqual(lint_candidate.lint_candidate_set(cands, breadth="wide"), {})
+
+
+class TestProvocationRequired(unittest.TestCase):
+    """Iteration-9: asking a model for crazier ideas reproduces its prior, so
+    wide breadth generates against briefs drawn outside the model."""
+
+    def _cand(self, provocation, status="gated"):
+        c = load_fixture("valid_candidate.json")
+        c["status"] = status
+        c.pop("probe_response", None)
+        if provocation is not None:
+            c["provocation"] = provocation
+        return [c]
+
+    def test_wide_breadth_without_provocation_fails(self):
+        errs = lint_candidate.lint_candidate_set(self._cand(None), breadth="wide")
+        self.assertTrue(any("no provocation recorded" in e for e in errs.get("CAND-01", [])))
+
+    def test_focused_breadth_does_not_require_provocation(self):
+        self.assertEqual(lint_candidate.lint_candidate_set(self._cand(None), breadth="focused"), {})
+
+    def test_killed_candidate_is_exempt(self):
+        self.assertEqual(
+            lint_candidate.lint_candidate_set(self._cand(None, status="killed"), breadth="wide"), {})
+
+    def test_improvised_triz_principle_fails(self):
+        errs = lint_candidate.lint_candidate_set(
+            self._cand({"slot": 1, "triz_principle": "Vibes Maximization"}), breadth="wide")
+        self.assertTrue(any("not one of the 40 principles" in e for e in errs.get("CAND-01", [])))
+
+    def test_real_triz_principle_passes(self):
+        errs = lint_candidate.lint_candidate_set(
+            self._cand({"slot": 1, "triz_principle": "Blessing in disguise",
+                        "sampled_probability": 0.04}), breadth="wide")
+        self.assertEqual(errs, {})
+
+    def test_out_of_range_probability_fails(self):
+        errs = lint_candidate.lint_candidate_set(
+            self._cand({"slot": 1, "triz_principle": "Feedback", "sampled_probability": 1.7}),
+            breadth="wide")
+        self.assertTrue(any("outside [0, 1]" in e for e in errs.get("CAND-01", [])))
+
+
+class TestProvokeScript(unittest.TestCase):
+    def test_vocabulary_matches_lint(self):
+        self.assertEqual(set(provoke.OPPORTUNITY_PATTERNS), lint_candidate.OPPORTUNITY_PATTERNS)
+
+    def test_forty_principles(self):
+        self.assertEqual(len(provoke.TRIZ), 40)
+        self.assertEqual(len({n for n, _ in provoke.TRIZ}), 40)
+
+    def test_draw_is_deterministic(self):
+        a = provoke.draw("run-x", 8, {})
+        b = provoke.draw("run-x", 8, {})
+        self.assertEqual(a, b)
+
+    def test_different_runs_draw_differently(self):
+        a = [d["triz_principle"] for d in provoke.draw("run-x", 8, {})]
+        b = [d["triz_principle"] for d in provoke.draw("run-y", 8, {})]
+        self.assertNotEqual(a, b)
+
+    def test_mined_patterns_are_deprioritised(self):
+        used = {"cross-domain-transfer": 16}
+        drawn = [d["opportunity_pattern"] for d in provoke.draw("run-x", 6, used)]
+        self.assertNotIn("cross-domain-transfer", drawn)
+
+    def test_briefs_spread_across_patterns(self):
+        drawn = [d["opportunity_pattern"] for d in provoke.draw("run-x", 12, {})]
+        self.assertEqual(len(set(drawn)), 12)
 
 
 class TestIncumbentWeekendBuildEvidence(unittest.TestCase):

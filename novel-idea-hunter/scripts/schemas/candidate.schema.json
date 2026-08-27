@@ -72,6 +72,34 @@
       "type": "string",
       "description": "Written at creation time: what in this candidate's OWN cited observations cuts against it, naming at least one of its observation_ids — or a statement that they were re-read and carry no counter-claim. Added after a run where 4 of 19 candidates were killed by evidence sitting in the records they themselves cited. Citing an observation is not re-reading it."
     },
+    "provocation": {
+      "type": "object",
+      "description": "The forced brief this candidate was generated against (scripts/provoke.py) and, where verbalized sampling was used, the probability the generator assigned it. Required at wide breadth: asking a model for crazier ideas does not work, so the provocation is drawn from outside it. See references/provocations.md.",
+      "properties": {
+        "slot": {
+          "type": "integer",
+          "description": "Slot number from provoke.py output."
+        },
+        "opportunity_pattern": {
+          "type": "string",
+          "description": "The pattern the slot forced."
+        },
+        "triz_principle": {
+          "type": "string",
+          "description": "The TRIZ inventive principle applied to the cluster's tension."
+        },
+        "inversion": {
+          "type": "string",
+          "description": "The inversion directive the slot forced."
+        },
+        "sampled_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability the generator assigned this candidate when asked to verbalize a distribution. Low values are the point."
+        }
+      }
+    },
     "observation_ids": {
       "type": "array",
       "minItems": 3,

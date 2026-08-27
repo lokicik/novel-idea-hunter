@@ -203,6 +203,30 @@ Generation targets depend on breadth, not just mode:
   (facets.md move 6) — the point of wide breadth is territory a focused run
   would never generate, not more of the same shape.
 
+**Reach past the model's prior — read `references/provocations.md`.** Asking
+yourself for crazier ideas does not work: mode collapse is a property of
+alignment, and idea diversity is known to saturate as generation scales, so
+more candidates buys repetition rather than range. Two moves instead, both
+required at `wide` breadth:
+
+1. **Draw forced briefs from outside the model:**
+
+```bash
+python3 "$SKILL/scripts/provoke.py" --run <run-dir> --count <n> --write
+```
+
+   Each slot fixes an unmined `opportunity_pattern`, a TRIZ inventive
+   principle to apply to the cluster's named tension, and an inversion
+   directive. Record the slot on the candidate as `provocation`. A brief that
+   yields nothing is a recorded result — say so rather than quietly taking an
+   easier slot.
+
+2. **Generate the distribution, keep the tail.** Ask for five candidates for a
+   niche *with the probability you would have produced each*, then build out
+   the low-probability ones and record that number in
+   `provocation.sampled_probability`. The typical answer is not wrong, it is
+   already known, which in this pipeline means it prosecutes as `crowded`.
+
 **Spread across `opportunity_pattern`, not just across niches.** Wide breadth
 requires ≥6 distinct patterns with no single pattern over 40% of candidates;
 focused requires ≥3 with none over 60%. Lint enforces this when `--breadth` is
