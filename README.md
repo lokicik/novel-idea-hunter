@@ -470,8 +470,8 @@ search, same kill-criteria vocabulary. Record: `evals/blind-readjudication-2026-
 **Result: 28 of 29 kills confirmed, by all three judges independently (97%).**
 The kill record is not an artifact of self-preference.
 
-**One kill was overturned unanimously, and it was wrong on fact rather than
-judgement.** CAND-02's `buyer-has-budget` note claimed no buyer varies review
+**One kill was overturned unanimously — and the overturn itself did not survive
+verification. See the correction below.** The claim at the time: CAND-02's `buyer-has-budget` note claimed no buyer varies review
 depth by disclosed production method. Linux and Fedora contribution policies
 already carry an `Assisted-by:` trailer, so receivers mark asserted production
 method today; SLSA leaves the source-provenance predicate undefined, which is a
@@ -542,3 +542,46 @@ idiosyncratic prior knowledge. Phase 0 now asks for it in plain terms — what d
 you know that isn't googleable — while the privacy rule stays absolute: ask,
 never assume, and never volunteer to go looking. A public-only run is now a
 stated limitation in the report rather than a silent default.
+
+### Correction to iteration 10, same day
+
+The overturned candidate was sent to a second prosecution pass whose first job
+was to check the four claims the judges used to revive it. **Three of four
+failed, and the kill was restored.**
+
+- `Assisted-by:` trailers **exist** — the kernel ships
+  `Documentation/process/coding-assistants.rst` with the field, and Fedora's
+  council approved one in October 2025. So the original kill note was wrong as
+  literally worded.
+- But **nothing acts on them.** Neither policy instructs reviewers to change
+  scrutiny, neither verifies the assertion, Fedora only encourages disclosure,
+  and the kernel's only MUST-strength rule runs the other way. The
+  "calibrate scrutiny" phrasing that carried the overturn traces to a vendor
+  blog, not to policy text.
+- **The CRA claim, which did the most work in the overturn, is false on its
+  operative half.** The dates are right, but CRA due diligence reaches component
+  conformity, update history and vulnerability data; Annex I reaches component
+  identity via SBOM. Nothing requires attesting *how code was produced*, and the
+  US attestation regime deliberately declines to distinguish machine-generated
+  from human source.
+- Only one claim survived intact: GitHub Artifact Attestations really do cover
+  build provenance rather than source authorship.
+
+Separately, the same-pain square filled between the two passes: commit-level
+machine-code detection now sells to engineering and legal buyers for use before
+merge, one product markets explicitly against "metadata-only approaches" — which
+is what this candidate is — and a free MIT-licensed gate ships. Detection at the
+commit dissolves the candidate's trust requirement entirely.
+
+**Corrected headline: 29 of 29 kills stand.** The blind pass found no genuine
+over-kill. What it found was one kill whose *stated reason* was wrong, which is
+worth fixing on its own — the note claimed nobody marks disclosed production
+method, when the accurate claim is that they mark it and nobody acts on it.
+
+**And the method took the sharper lesson.** Three judges agreed unanimously on an
+overturn resting on one true-but-inconsequential claim and one false regulatory
+claim. Their 100% agreement was a *false signal* — the concrete form of the
+shared-prior limitation flagged above, demonstrated rather than hypothesised.
+Blind judges without retrieval check reasoning, not evidence. Any future blind
+pass must either give judges search, or treat a unanimous overturn as a
+hypothesis to prosecute rather than as a result.
