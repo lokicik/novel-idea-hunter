@@ -420,6 +420,24 @@ class TestPatternSpread(unittest.TestCase):
         self.assertEqual(lint_candidate.lint_candidate_set(cands, breadth="wide"), {})
 
 
+class TestMalformedFieldsDoNotCrash(unittest.TestCase):
+    """A malformed candidate must produce an error, never a traceback — the
+    lint is run against machine-written files and has to survive them."""
+
+    def test_string_why_now_is_an_error_not_a_crash(self):
+        cand = load_fixture("valid_candidate.json")
+        cand["mechanism"]["why_now"] = "detectors got cheap"
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "why_now must be an object"))
+
+    def test_string_mechanism_is_an_error_not_a_crash(self):
+        cand = load_fixture("valid_candidate.json")
+        cand["mechanism"] = {"actor": "x" * 9, "trigger": "y" * 9, "steps": [],
+                             "why_now": ["not", "an", "object"]}
+        errors, _ = lint_candidate.lint_candidate(cand)
+        self.assertTrue(has_error(errors, "why_now must be an object"))
+
+
 class TestProvocationRequired(unittest.TestCase):
     """Iteration-9: asking a model for crazier ideas reproduces its prior, so
     wide breadth generates against briefs drawn outside the model."""

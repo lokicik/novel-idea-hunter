@@ -261,6 +261,10 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, prob
     need(len(str(mech.get("replaces_workaround", ""))) >= 10,
          "mechanism.replaces_workaround missing — if the actor does nothing today, the pain is probably not real")
     why = mech.get("why_now") or {}
+    if not isinstance(why, dict):
+        errors.append("mechanism.why_now must be an object with 'change' and "
+                      "'evidence_observation_ids' — a bare string cannot cite its evidence")
+        why = {}
     need(len(str(why.get("change", ""))) >= 15, "mechanism.why_now.change missing or too thin")
     why_ev = why.get("evidence_observation_ids") or []
     need(len(why_ev) >= 1, "mechanism.why_now cites no observation ids — 'why now' needs evidence, not vibes")
