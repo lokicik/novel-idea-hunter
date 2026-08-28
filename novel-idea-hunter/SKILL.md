@@ -72,6 +72,15 @@ Pin down with the user (ask only what the brief doesn't already answer):
   both on survivors when the run declares it. A good small business fails
   these while remaining a good small business, which is exactly why they only
   bind when asked for.
+- **Entry mode** — `greenfield` (default) or `contested`. Greenfield hunts
+  unoccupied space and lets novelty decide. **Contested assumes the space is
+  occupied and asks why this builder wins instead**, which is usually the right
+  question when the user says they want a business rather than something novel.
+  It stops a `duplicated` verdict being terminal and makes `founder-advantage`,
+  `switching-trigger` and `beachhead-specificity` mandatory on survivors. Ask
+  which one the user wants — "find me an idea nobody has had" and "find me
+  something I could build and sell" are different briefs and this is the flag
+  that separates them.
 - **Breadth and survivor ceiling** — default `focused` breadth, up to 3
   survivors. If the user wants more options to choose from, or explicitly
   wants wilder/contrarian territory instead of the single safest move, set
@@ -106,8 +115,9 @@ Then scaffold the run and mark phases as you go (update `run.json`):
 
 ```bash
 python3 "$SKILL/scripts/init_run.py" --domain "<domain>" --mode <mode> \
-    --product-shape <shape> --breadth <focused|wide> \
-    --ambition <lifestyle|venture> --max-survivors <n> --out ./idea-runs
+    --product-shape <shape|unconstrained> --breadth <focused|wide> \
+    --ambition <lifestyle|venture> --entry-mode <greenfield|contested> \
+    --max-survivors <n> --out ./idea-runs
 ```
 
 ## Phase 1 — Observe (ideas forbidden)
@@ -290,8 +300,11 @@ to `prosecuted`, re-run lint (it enforces verdict consistency).
 
 ## Phase 7 — Attack
 
-Read `references/kill-criteria.md`. The goal profile follows directly from
-the declared `product_shape`: `open-source-stewardship` uses the stewardship
+Read `references/kill-criteria.md`. When the run declares
+`entry_mode: contested`, use the **contested-entry profile** — prior art is the
+premise, and `founder-advantage`, `switching-trigger` and
+`beachhead-specificity` decide instead. Otherwise the profile follows from the
+declared `product_shape`: `open-source-stewardship` uses the stewardship
 profile, every other shape uses the commercial profile — no guessing what
 the brief implies. A run declaring `ambition: venture` applies
 `scale-ceiling` and `distribution-model-fit` on top of its profile; write the

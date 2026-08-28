@@ -40,7 +40,7 @@ def slugify(text, max_len=40):
 
 
 def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_survivors=3,
-             ambition="lifestyle"):
+             ambition="lifestyle", entry_mode="greenfield"):
     now = _dt.datetime.now()
     run_id = f"{now:%Y%m%d-%H%M%S}-{slugify(domain)}"
     run_dir = Path(out_dir) / run_id
@@ -56,13 +56,15 @@ def init_run(domain, mode, product_shape, out_dir, breadth="focused", max_surviv
         "breadth": breadth,
         "max_survivors": max_survivors,
         "ambition": ambition,
+        "entry_mode": entry_mode,
         "created": now.isoformat(timespec="seconds"),
         "phases": [{"name": p, "status": "pending"} for p in PHASES],
     }
     (run_dir / "run.json").write_text(json.dumps(run_meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (run_dir / "notes" / "PROGRESS.md").write_text(
         f"# Run {run_id}\n\nDomain: {domain}\nMode: {mode}\nProduct shape: {product_shape}\n"
-        f"Breadth: {breadth}\nMax survivors: {max_survivors}\nAmbition: {ambition}\n\n"
+        f"Breadth: {breadth}\nMax survivors: {max_survivors}\nAmbition: {ambition}\n"
+        f"Entry mode: {entry_mode}\n\n"
         + "".join(f"- [ ] {p}\n" for p in PHASES)
         + "\nUpdate run.json phase statuses (pending -> in-progress -> done) as you go.\n",
         encoding="utf-8",
@@ -74,14 +76,24 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--domain", required=True, help="the search brief's domain or problem area")
     ap.add_argument("--mode", choices=["quick", "deep"], default="deep")
-    ap.add_argument("--product-shape", required=True, choices=PRODUCT_SHAPES,
-                     help="the kind of thing a survivor should be — drives Diverge and the Attack goal profile")
+    ap.add_argument("--product-shape", required=True, choices=PRODUCT_SHAPES + ["unconstrained"],
+                     help="the kind of thing a survivor should be — drives Diverge and the Attack goal "
+                          "profile. 'unconstrained' lets each candidate take the shape its mechanism wants: "
+                          "every candidate still declares a valid shape, but the run does not force them to "
+                          "agree and lint is run without --require-shape. Use it when the user asks for "
+                          "ideas rather than for a particular kind of business — forcing a shape has killed "
+                          "sound mechanisms on capital structure before their merits were argued")
     ap.add_argument("--breadth", choices=["focused", "wide"], default="focused",
                      help="wide widens candidate generation and requires a quota of deliberately "
                           "maximum-distance ('collision search') recombinations — costs several times "
                           "more tokens/time for a wider, weirder funnel, not a softer bar")
     ap.add_argument("--max-survivors", type=int, choices=[1, 2, 3, 4, 5, 6], default=3,
                      help="portfolio ceiling (default 3); still a ceiling, not a quota to pad toward")
+    ap.add_argument("--entry-mode", choices=["greenfield", "contested"], default="greenfield",
+                     help="greenfield hunts unoccupied space (novelty decides). contested assumes the "
+                          "space is occupied and asks why THIS builder wins — prior art stops being "
+                          "disqualifying and survivors must pass founder-advantage, switching-trigger "
+                          "and beachhead-specificity instead")
     ap.add_argument("--ambition", choices=["lifestyle", "venture"], default="lifestyle",
                      help="venture adds the scale-ceiling and distribution-model-fit kill criteria")
     ap.add_argument("--out", default="idea-runs", help="parent directory for runs (default ./idea-runs)")
@@ -89,7 +101,7 @@ def main(argv=None):
     try:
         run_dir = init_run(args.domain, args.mode, args.product_shape, args.out,
                             breadth=args.breadth, max_survivors=args.max_survivors,
-                            ambition=args.ambition)
+                            ambition=args.ambition, entry_mode=args.entry_mode)
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

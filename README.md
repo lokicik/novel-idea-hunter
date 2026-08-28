@@ -585,3 +585,38 @@ shared-prior limitation flagged above, demonstrated rather than hypothesised.
 Blind judges without retrieval check reasoning, not evidence. Any future blind
 pass must either give judges search, or treat a unanimous overturn as a
 hypothesis to prosecute rather than as a result.
+
+## Iteration 12 (2026-08-28) — asking the other question
+
+Eight runs, 86 candidates, 2 survivors — both from the earliest runs. The
+diagnosis that finally landed is not about calibration:
+
+**The pipeline hunts unoccupied space. Most businesses are built in occupied
+space.** Every run optimised for "nobody does this", and iteration 8's back-test
+had already shown the same reasoning killing companies that in fact won against
+incumbents shipping the capability bundled free. "Find me something novel" and
+"find me something I could build and sell" are different briefs, and the tool
+only knew how to answer the first.
+
+`--entry-mode contested` answers the second. Under it:
+
+- A `duplicated` novelty verdict stops being terminal. Prior art is the premise.
+- Three criteria become mandatory on survivors, and lint enforces all three:
+  - **`founder-advantage`** — what does *this* builder have that a competent
+    stranger does not? A candidate equally good in anyone's hands is a `kill`:
+    it describes a market, not a plan.
+  - **`switching-trigger`** — in an occupied market nobody switches because a
+    product is better; they switch at a *moment*. Name it. "Better UX" fails.
+  - **`beachhead-specificity`** — can you list the first twenty customers by
+    name, or narrowly enough to build the list in an afternoon?
+
+Phase 0 now asks which brief the user actually has, because the two produce
+different runs from the first search onward.
+
+This also reframes what the previous eleven iterations were doing. They made an
+occupancy detector honest, cheap and auditable — and it is genuinely good at
+that. What it kept reporting was true: there is no unoccupied, public-web-findable
+niche in the territories searched. That answer stops being the interesting one
+once the question changes.
+
+Tests 95 -> 100.

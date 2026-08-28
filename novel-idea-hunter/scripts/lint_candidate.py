@@ -144,6 +144,15 @@ PATTERN_SPREAD_MIN_CANDIDATES = 8
 # scales. See references/provocations.md and scripts/provoke.py.
 BREADTH_REQUIRING_PROVOCATION = {"wide"}
 
+# Entry mode. The pipeline's default question is "is this space empty?", which is
+# the right question when the user wants novelty. It is the wrong question when
+# the user wants a business: measured across 86 candidates in this repo, hunting
+# empty space returned 2 survivors, and a back-test showed the same reasoning
+# killing companies that in fact won in occupied markets. Under 'contested', prior
+# art is expected rather than disqualifying and the burden moves to founder fit.
+ENTRY_MODES = {"greenfield", "contested"}
+CONTESTED_CRITERIA = ("founder-advantage", "switching-trigger", "beachhead-specificity")
+
 
 def _text_fields_for_slop_scan(cand):
     parts = [cand.get("name", ""), cand.get("one_liner", "")]
@@ -158,7 +167,7 @@ def _lens_of(obs_id):
 
 
 def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, probes_on_disk=None,
-                   required_ambition=None):
+                   required_ambition=None, entry_mode="greenfield"):
     """Return (errors, warnings) lists of strings for one candidate dict.
 
     required_shape, when given, hard-enforces that this candidate's
@@ -420,8 +429,23 @@ def lint_candidate(cand, observation_ids_on_disk=None, required_shape=None, prob
     if status == "killed":
         need(len(str(cand.get("graveyard_reason", ""))) >= 10, "status 'killed' requires graveyard_reason")
     if status == "survivor":
-        if verdict == "duplicated":
+        if verdict == "duplicated" and entry_mode != "contested":
             errors.append("survivor with verdict 'duplicated' — a live product already serves this actor")
+        if entry_mode == "contested":
+            # Occupied space is the premise here, so novelty verdicts do not decide
+            # anything. What decides is whether THIS builder wins, which is what the
+            # contested criteria measure. All three are mandatory on a survivor.
+            results_by_criterion = {t.get("criterion"): t.get("result")
+                                    for t in kill_tests if isinstance(t, dict)}
+            for criterion in CONTESTED_CRITERIA:
+                res = results_by_criterion.get(criterion)
+                if res is None:
+                    errors.append(f"contested-entry survivor did not apply '{criterion}' — in occupied "
+                                  "space the question is not whether anyone else does this, it is why "
+                                  "this builder wins; all three contested criteria are mandatory")
+                elif res == "kill":
+                    errors.append(f"contested-entry survivor has '{criterion}' = 'kill' — entering an "
+                                  "occupied market without this is entering it as the weaker party")
         if verdict == "crowded":
             # Being occupied is not by itself disqualifying: most businesses enter
             # occupied space. What a crowded candidate owes is a reason the incumbent
@@ -589,6 +613,10 @@ def main(argv=None):
                      help="fail any candidate whose product_shape isn't this run's declared shape")
     ap.add_argument("--require-ambition", choices=sorted(AMBITIONS),
                      help="venture: survivors must additionally pass scale-ceiling and distribution-model-fit")
+    ap.add_argument("--entry-mode", choices=sorted(ENTRY_MODES), default="greenfield",
+                     help="contested: occupied space is the premise, so prior art stops being "
+                          "disqualifying and survivors must instead pass founder-advantage, "
+                          "switching-trigger and beachhead-specificity")
     ap.add_argument("--breadth", choices=sorted(PATTERN_SPREAD),
                      help="enforce the opportunity_pattern spread floors for this run's declared breadth")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
@@ -604,7 +632,7 @@ def main(argv=None):
             print(f"error: cannot read {path}: {exc}", file=sys.stderr)
             return 2
         errors, warnings = lint_candidate(cand, obs_ids, args.require_shape, probes,
-                                          args.require_ambition)
+                                          args.require_ambition, args.entry_mode)
         loaded.append(cand)
         results.append({"file": path, "id": cand.get("id"), "errors": errors, "warnings": warnings})
 

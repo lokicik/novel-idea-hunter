@@ -539,6 +539,50 @@ class TestIncumbentWeekendBuildEvidence(unittest.TestCase):
         self.assertTrue(has_error(errors, "no substantive note"))
 
 
+class TestContestedEntryMode(unittest.TestCase):
+    """Iteration-12: hunting empty space returned 2 survivors across 86
+    candidates, and a back-test showed the same reasoning killing winners."""
+
+    def _survivor(self, verdict, extra_tests=()):
+        c = load_fixture("valid_candidate.json")
+        c["novelty"]["verdict"] = verdict
+        c["novelty"]["recheck"] = {"outcome": "upheld", "queries": ["q"]}
+        base = [t for t in c["kill_tests"]]
+        for crit in extra_tests:
+            base.append({"criterion": crit, "result": "pass",
+                         "note": "named concretely and checkable by a reader today, not asserted."})
+        c["kill_tests"] = base
+        return c
+
+    def test_duplicated_survivor_still_fails_in_greenfield(self):
+        errors, _ = lint_candidate.lint_candidate(self._survivor("duplicated"))
+        self.assertTrue(has_error(errors, "a live product already serves this actor"))
+
+    def test_duplicated_survivor_allowed_in_contested(self):
+        cand = self._survivor("duplicated", lint_candidate.CONTESTED_CRITERIA)
+        errors, _ = lint_candidate.lint_candidate(cand, entry_mode="contested")
+        self.assertFalse(has_error(errors, "a live product already serves this actor"))
+
+    def test_contested_survivor_needs_all_three_criteria(self):
+        cand = self._survivor("crowded", ("founder-advantage",))
+        errors, _ = lint_candidate.lint_candidate(cand, entry_mode="contested")
+        self.assertTrue(has_error(errors, "did not apply 'switching-trigger'"))
+        self.assertTrue(has_error(errors, "did not apply 'beachhead-specificity'"))
+
+    def test_contested_survivor_rejected_on_killed_criterion(self):
+        cand = self._survivor("crowded", lint_candidate.CONTESTED_CRITERIA)
+        for t in cand["kill_tests"]:
+            if t["criterion"] == "founder-advantage":
+                t["result"] = "kill"
+                t["note"] = "anyone competent could build this equally well, so nothing explains the outcome."
+        errors, _ = lint_candidate.lint_candidate(cand, entry_mode="contested")
+        self.assertTrue(has_error(errors, "'founder-advantage' = 'kill'"))
+
+    def test_greenfield_ignores_contested_criteria(self):
+        errors, _ = lint_candidate.lint_candidate(self._survivor("crowded"))
+        self.assertFalse(has_error(errors, "founder-advantage"))
+
+
 class TestForbiddenClaims(unittest.TestCase):
     def test_forbidden_claim_anywhere_fails(self):
         cand = load_fixture("valid_candidate.json")

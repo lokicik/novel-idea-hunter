@@ -33,6 +33,20 @@ them out is why a pipeline can return a perfectly sound idea that could never
 clear ten million however well it is run. They are applied *in addition to*
 the commercial set, never instead of it.
 
+**Contested-entry profile** — the run declares `entry_mode: contested`. Use it
+when the user wants a business rather than a novelty. Prior art is then the
+*premise*, not a defect: the commercial core still applies, but
+`incumbent-weekend-build` softens to information rather than a verdict, and
+three criteria become mandatory instead — `founder-advantage`,
+`switching-trigger`, `beachhead-specificity`. Lint enforces all three on
+survivors and stops treating a `duplicated` novelty verdict as terminal.
+
+The evidence for this profile existing at all: across 86 candidates in this
+repo, hunting unoccupied space returned 2 survivors, and a back-test showed the
+default reasoning killing companies that in fact won in occupied markets. Most
+businesses are built in occupied space. Asking "is this empty?" answers a
+question the user usually is not asking.
+
 **Stewardship profile** — `product_shape` is `open-source-stewardship`:
 replace `buyer-has-budget` and `unit-economics-smell` with
 `adoption-gatekeeper` and `sustainability-path`. Everything else still
@@ -174,6 +188,34 @@ Pass requires naming the motion and the pricing and showing they cohere —
 adopts" coheres; "enterprise compliance buyer, $29/month self-serve" does
 not. This criterion catches the failure where both halves are individually
 sensible and together impossible.
+
+**`founder-advantage`** *(contested-entry profile)* — What does **this** builder
+have that a competent stranger does not? Name it concretely: domain access, a
+customer relationship, an unusual skill combination, a market others cannot
+reach, speed in a specific stack, or tolerance for an unglamorous problem.
+"They are a good engineer" is the null answer and fails, because the competition
+is also good engineers. In occupied space this is the only criterion that
+explains why the outcome differs from the incumbent's — everything else on the
+list is equally available to everyone. A candidate that would be equally good in
+anyone's hands is a `kill` here, not a pass: it is a description of a market,
+not a plan.
+
+**`switching-trigger`** *(contested-entry profile)* — In an occupied market
+nobody switches because a product is better. They switch at a **moment**: a
+renewal, a migration, a price change, an outage, a new regulation, a person
+changing jobs, a workflow that just broke. Name the moment and say how the
+product is present when it happens. "Better UX" and "cheaper" are not triggers
+and fail. Pass requires a trigger that fires often enough to build on — check it
+against `pain-frequency`, which measures the same clock.
+
+**`beachhead-specificity`** *(contested-entry profile)* — Can you list the first
+twenty customers by name, or by a description narrow enough that a list could be
+built in an afternoon? "Small SaaS teams" is not a beachhead; "the 40 Turkish
+e-commerce operators running their own fulfilment who post in this forum" is.
+The test is whether the reader could go and find them today. This is the
+criterion that most often exposes a candidate as a category rather than a
+business, and it fails loudly when the honest answer is that the buyer set was
+never imagined concretely.
 
 **`adoption-gatekeeper`** *(stewardship profile)* — Who must accept, merge,
 link, or defer to this artifact for it to matter, and what is their concrete
